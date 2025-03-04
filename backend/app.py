@@ -126,7 +126,40 @@ def create_admin_user():
 # Routes
 @app.route('/')
 def landing_page():
-    return jsonify({'message': 'Welcome to the Moving App API!'})
+   return jsonify({
+        "message": "Welcome to MoveEase - Relocate with Ease!",
+        "testimonials": [
+            {
+                "id": 1,
+                "name": "Martin Hughes",
+                "quote": "MoveEase made my relocation stress-free and efficient. Highly recommended!",
+                "image": "/src/assets/Martin.jpg",
+            },
+            {
+                "id": 2,
+                "name": "Janet Jason",
+                "quote": "The team was professional and handled everything with care. Great service!",
+                "image": "/src/assets/Janet.jpg",
+            },
+        ]
+    })
+
+# API to Calculate Moving Cost
+@app.route("/api/calculate_cost", methods=["POST"])
+def calculate_cost():
+    data = request.get_json()
+
+    try:
+        distance = float(data.get("distance", 0))
+        if distance <= 0:
+            return jsonify({"error": "Distance must be greater than zero"}), 400
+    except ValueError:
+        return jsonify({"error": "Invalid distance value"}), 400
+
+    rate = 2  # Cost per mile
+    amount = round(distance * rate, 2)
+
+    return jsonify({"distance": distance, "estimated_cost": amount})
 
 # Authentication
 @app.route('/api/register', methods=['POST'])
