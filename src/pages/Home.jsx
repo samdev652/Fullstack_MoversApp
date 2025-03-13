@@ -1,6 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Home.scss";
+import SearchBar from "../components/SearchBar";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import Slider from "react-slick";
+
+// Testimonials data
+const testimonials = [
+  {
+    id: 1,
+    name: "Martin Hughes",
+    quote: "MoveEase made my relocation stress-free and efficient. Highly recommended!",
+    image: "./src/assets/Martin.jpg",
+  },
+  {
+    id: 2,
+    name: "Janet Jason",
+    quote: "The team was professional and handled everything with care. Great service!",
+    image: "./src/assets/Janet.jpg",
+  },
+];
 
 const Home = () => {
   const [distance, setDistance] = useState("");
@@ -12,23 +32,14 @@ const Home = () => {
     setAmount((distance * rate).toFixed(2));
   };
 
-  // Testimonials data
-  const testimonials = [
-    {
-      id: 1,
-      name: "Martin Hughes",
-      quote:
-        "MoveEase made my relocation stress-free and efficient. Highly recommended!",
-      image: "/src/assets/Martin.jpg",
-    },
-    {
-      id: 2,
-      name: "Janet Jason",
-      quote:
-        "The team was professional and handled everything with care. Great service!",
-      image: "/src/assets/Janet.jpg",
-    },
-  ];
+  const testimonialSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+  };
 
   return (
     <div className="home-container">
@@ -50,6 +61,11 @@ const Home = () => {
           {amount && <p>Estimated Cost: ${amount}</p>}
         </div>
 
+        {/* SearchBar */}
+        <SearchBar
+          onSearch={(query) => navigate(`/search?query=${query}`)}
+        />
+
         {/* Animated Get Started Button */}
         <button
           className="get-started-button"
@@ -58,21 +74,24 @@ const Home = () => {
           Get Started
         </button>
 
-        {/* Testimonials Section */}
+        {/* Testimonials Carousel */}
         <div className="testimonials-section">
-          {testimonials.map((testimonial) => (
-            <div key={testimonial.id} className="testimonial-card">
-              <img
-                src={testimonial.image}
-                alt={testimonial.name}
-                className="testimonial-image"
-              />
-              <div className="testimonial-content">
-                <h3 className="testimonial-name">{testimonial.name}</h3>
-                <p className="testimonial-quote">"{testimonial.quote}"</p>
+          <h2>What People Are Saying</h2>
+          <Slider {...testimonialSettings}>
+            {testimonials.map((testimonial) => (
+              <div key={testimonial.id} className="testimonial-card">
+                <img
+                  src={testimonial.image}
+                  alt={testimonial.name}
+                  className="testimonial-image"
+                />
+                <div className="testimonial-content">
+                  <h3 className="testimonial-name">{testimonial.name}</h3>
+                  <p className="testimonial-quote">"{testimonial.quote}"</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </Slider>
         </div>
       </div>
 
