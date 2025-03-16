@@ -1,0 +1,32 @@
+/* BookDriver.css */
+.leaflet-container {
+    height: 100%;
+    width: 100%;
+    border-radius: 0.375rem;
+  }
+  
+  .map-container {
+    position: relative;
+  }
+  
+  /* Override some default Leaflet styles */
+  .leaflet-popup-content-wrapper {
+    border-radius: 0.375rem;
+  }
+  
+  .leaflet-popup-content {
+    margin: 0.5rem 0.75rem;
+    line-height: 1.4;
+  }
+  
+  .leaflet-control-zoom {
+    margin-right: 10px !important;
+    margin-top: 10px !important;
+  }
+  
+  /* Make sure Leaflet attribution is readable */
+  .leaflet-control-attribution {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    padding: 0 5px;
+    font-size: 10px;
+  }
