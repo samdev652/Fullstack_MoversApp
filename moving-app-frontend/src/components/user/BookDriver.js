@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import './BookDriver.css'; // You'll need to create this CSS file
+import './BookDriver.css';
 
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,8 +15,59 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
 });
 
+// Kenyan drivers data
+const KENYAN_DRIVERS = [
+  {
+    driver_id: 1,
+    name: "David Kamau",
+    vehicle_type: "Sedan",
+    ratings: 4.8,
+    completed_orders: 237,
+    price: 1500
+  },
+  {
+    driver_id: 2,
+    name: "Faith Wanjiku",
+    vehicle_type: "SUV",
+    ratings: 4.9,
+    completed_orders: 412,
+    price: 1850
+  },
+  {
+    driver_id: 3,
+    name: "Brian Odhiambo",
+    vehicle_type: "Luxury",
+    ratings: 4.7,
+    completed_orders: 187,
+    price: 2200
+  },
+  {
+    driver_id: 4,
+    name: "Esther Muthoni",
+    vehicle_type: "Economy",
+    ratings: 4.6,
+    completed_orders: 153,
+    price: 1200
+  },
+  {
+    driver_id: 5,
+    name: "John Mwangi",
+    vehicle_type: "Boda Boda",
+    ratings: 4.5,
+    completed_orders: 292,
+    price: 500
+  }
+];
+
+// Kenyan promo codes
+const KENYAN_PROMO_CODES = {
+  "KARIBU10": 0.1,   // 10% off
+  "SAFARI20": 0.2,   // 20% off
+  "NAIROBI25": 0.25  // 25% off
+};
+
 const BookDriver = () => {
-  const { user } = useAuth();
+  const { user } = useAuth() || { user: { id: 1, name: "Test User" } }; // Fallback for testing
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     pickup_location: '',
@@ -32,7 +82,7 @@ const BookDriver = () => {
     pickup: null,
     dropoff: null
   });
-  const [mapCenter, setMapCenter] = useState([0, 0]);
+  const [mapCenter, setMapCenter] = useState([-1.2921, 36.8219]); // Default center on Nairobi
   const [mapZoom, setMapZoom] = useState(13);
 
   const handleChange = (e) => {
@@ -43,32 +93,44 @@ const BookDriver = () => {
     });
   };
 
-  // Geocode function to convert addresses to coordinates
+  // Simulate geocoding with predefined responses for Kenyan locations
   const geocodeAddress = async (address) => {
-    try {
-      // Using OpenStreetMap's Nominatim API for geocoding (no API key required)
-      const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
-        params: {
-          q: address,
-          format: 'json',
-          limit: 1
-        },
-        headers: {
-          'Accept-Language': 'en'
-        }
-      });
-
-      if (response.data && response.data.length > 0) {
-        return {
-          lat: parseFloat(response.data[0].lat),
-          lon: parseFloat(response.data[0].lon)
-        };
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Mapping of Kenyan addresses to coordinates
+    const geocodeMap = {
+      'nairobi': { lat: -1.2921, lon: 36.8219 },
+      'mombasa': { lat: -4.0435, lon: 39.6682 },
+      'kisumu': { lat: -0.1022, lon: 34.7617 },
+      'nakuru': { lat: -0.3031, lon: 36.0800 },
+      'eldoret': { lat: 0.5143, lon: 35.2698 },
+      'thika': { lat: -1.0396, lon: 37.0900 },
+      'kitale': { lat: 1.0167, lon: 35.0000 },
+      'malindi': { lat: -3.2175, lon: 40.1192 },
+      'westlands': { lat: -1.2637, lon: 36.8029 },
+      'karen': { lat: -1.3179, lon: 36.7062 },
+      'kilimani': { lat: -1.2898, lon: 36.7718 },
+      'cbd': { lat: -1.2864, lon: 36.8172 },
+      'lavington': { lat: -1.2802, lon: 36.7645 },
+      'ngong': { lat: -1.3611, lon: 36.6550 },
+      'jkia': { lat: -1.3236, lon: 36.9260 },
+      'nyali': { lat: -4.0210, lon: 39.7200 }
+    };
+    
+    // Try to match the address to our map (case insensitive)
+    const lowerCaseAddress = address.toLowerCase();
+    for (const [key, coords] of Object.entries(geocodeMap)) {
+      if (lowerCaseAddress.includes(key)) {
+        return coords;
       }
-      return null;
-    } catch (error) {
-      console.error('Geocoding error:', error);
-      return null;
     }
+    
+    // Fallback: return random coordinates near Nairobi
+    return {
+      lat: -1.2921 + (Math.random() - 0.5) * 0.1,
+      lon: 36.8219 + (Math.random() - 0.5) * 0.1
+    };
   };
 
   const handleSearch = async (e) => {
@@ -76,15 +138,9 @@ const BookDriver = () => {
     setLoading(true);
     
     try {
-      // First geocode the addresses
+      // First geocode the addresses using our dummy geocoder
       const pickupCoords = await geocodeAddress(formData.pickup_location);
       const dropoffCoords = await geocodeAddress(formData.dropoff_location);
-      
-      if (!pickupCoords || !dropoffCoords) {
-        toast.error('Could not find one or both of the locations. Please check the addresses.');
-        setLoading(false);
-        return;
-      }
       
       // Update the locations state
       setLocations({
@@ -106,16 +162,21 @@ const BookDriver = () => {
         dropoffCoords.lat, dropoffCoords.lon
       );
       
-      // Now search for drivers with the API
-      const response = await axios.post('/api/user/search-drivers', {
-        pickup_location: formData.pickup_location,
-        dropoff_location: formData.dropoff_location
-      });
+      // Calculate base price based on distance (in KES)
+      const basePrice = 200 + (distance * 50);
       
-      // Merge our calculated distance with the API response
+      // Prepare drivers with individualized pricing
+      const drivers = KENYAN_DRIVERS.map(driver => ({
+        ...driver,
+        // Add some variation to driver prices
+        price: basePrice * (0.9 + (Math.random() * 0.3))
+      }));
+      
+      // Create search results
       setSearchResults({
-        ...response.data,
-        distance: distance.toFixed(2), // Use our calculated distance
+        drivers: drivers,
+        distance: distance.toFixed(2),
+        price: basePrice,
         calculated_route: {
           from: pickupCoords,
           to: dropoffCoords
@@ -123,9 +184,11 @@ const BookDriver = () => {
       });
       
       setBookingStep(2);
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 700));
       setLoading(false);
     } catch (error) {
-      console.error('Error searching for drivers:', error);
+      console.error('Error in search:', error);
       toast.error('Failed to search for drivers. Please try again.');
       setLoading(false);
     }
@@ -160,20 +223,25 @@ const BookDriver = () => {
       return;
     }
     
-    try {
-      const response = await axios.post('/api/user/apply-promo-code', {
-        promo_code: formData.promo_code,
-        booking_id: null // This will be updated after booking is created
-      });
-      
+    // Simulate API delay
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setLoading(false);
+    
+    const promoCode = formData.promo_code.toUpperCase();
+    const discount = KENYAN_PROMO_CODES[promoCode];
+    
+    if (discount) {
+      const newPrice = searchResults.price * (1 - discount);
       setSearchResults({
         ...searchResults,
-        price: response.data.new_price
+        price: newPrice,
+        appliedPromoCode: promoCode,
+        discount: discount * 100
       });
       
-      toast.success('Promo code applied successfully!');
-    } catch (error) {
-      console.error('Error applying promo code:', error);
+      toast.success(`Promo code ${promoCode} applied! ${discount * 100}% discount`);
+    } else {
       toast.error('Invalid or inactive promo code');
     }
   };
@@ -181,23 +249,29 @@ const BookDriver = () => {
   const handleBookDriver = async () => {
     setLoading(true);
     
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    
+    // Generate a random booking ID
+    const bookingId = Math.floor(100000 + Math.random() * 900000);
+    
+    toast.success('Driver booked successfully!');
+    
+    // Redirect to a fictional tracking page
+    // Note: If the navigate function isn't available in the test environment,
+    // we'll just log the navigation and handle booking completion in this component
     try {
-      const response = await axios.post('/api/user/book-driver', {
-        user_id: user.id,
-        driver_id: selectedDriver.driver_id,
-        pickup_location: formData.pickup_location,
-        dropoff_location: formData.dropoff_location,
-        distance: searchResults.distance,
-        price: searchResults.price,
-        promo_code: formData.promo_code
-      });
-      
-      toast.success('Driver booked successfully!');
-      navigate(`/user/track/${response.data.booking_id}`);
+      navigate(`/user/track/${bookingId}`);
     } catch (error) {
-      console.error('Error booking driver:', error);
-      toast.error('Failed to book driver. Please try again.');
+      console.log(`Would navigate to: /user/track/${bookingId}`);
+      toast.info(`Booking #${bookingId} confirmed. Your driver will arrive shortly.`);
       setLoading(false);
+      setBookingStep(1);
+      setFormData({
+        pickup_location: '',
+        dropoff_location: '',
+        promo_code: ''
+      });
     }
   };
 
@@ -236,6 +310,7 @@ const BookDriver = () => {
                 required
                 placeholder="Enter pickup address"
               />
+              <p className="text-xs text-gray-500 mt-1">Try: CBD, Westlands, Kilimani, Karen, etc.</p>
             </div>
             
             <div className="mb-6">
@@ -252,6 +327,7 @@ const BookDriver = () => {
                 required
                 placeholder="Enter destination address"
               />
+              <p className="text-xs text-gray-500 mt-1">Try: JKIA, Lavington, Ngong, Thika, etc.</p>
             </div>
             
             <button
@@ -307,7 +383,7 @@ const BookDriver = () => {
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-2">Trip Details</h2>
             <p><span className="font-medium">Distance:</span> {searchResults.distance} km</p>
-            <p><span className="font-medium">Estimated Price:</span> ${searchResults.price.toFixed(2)}</p>
+            <p><span className="font-medium">Estimated Price:</span> KES {searchResults.price.toFixed(0)}</p>
           </div>
           
           <h2 className="text-xl font-semibold mb-4">Available Drivers</h2>
@@ -333,7 +409,7 @@ const BookDriver = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">${driver.price.toFixed(2)}</p>
+                      <p className="font-bold">KES {driver.price.toFixed(0)}</p>
                       <button
                         className="mt-2 bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition-colors text-sm"
                         onClick={(e) => {
@@ -405,7 +481,16 @@ const BookDriver = () => {
             <p><span className="font-medium">From:</span> {formData.pickup_location}</p>
             <p><span className="font-medium">To:</span> {formData.dropoff_location}</p>
             <p><span className="font-medium">Distance:</span> {searchResults.distance} km</p>
-            <p><span className="font-medium">Price:</span> ${searchResults.price.toFixed(2)}</p>
+            
+            {searchResults.appliedPromoCode && (
+              <div className="bg-green-50 border border-green-200 rounded p-2 mt-2">
+                <p className="text-green-700">
+                  <span className="font-medium">Promo applied:</span> {searchResults.appliedPromoCode} ({searchResults.discount}% off)
+                </p>
+              </div>
+            )}
+            
+            <p><span className="font-medium">Price:</span> KES {searchResults.price.toFixed(0)}</p>
             <p><span className="font-medium">Driver:</span> {selectedDriver.name}</p>
             <p><span className="font-medium">Vehicle:</span> {selectedDriver.vehicle_type}</p>
           </div>
@@ -429,16 +514,19 @@ const BookDriver = () => {
                 type="button"
                 onClick={handleApplyPromo}
                 className="bg-gray-200 text-gray-800 py-2 px-4 rounded-r-md hover:bg-gray-300 transition-colors"
+                disabled={loading}
               >
                 Apply
               </button>
             </div>
+            <p className="text-xs text-gray-500 mt-1">Try: KARIBU10, SAFARI20, NAIROBI25</p>
           </div>
           
           <div className="flex justify-between">
             <button
               className="text-blue-600 hover:text-blue-800"
               onClick={() => setBookingStep(2)}
+              disabled={loading}
             >
               ← Back to drivers
             </button>

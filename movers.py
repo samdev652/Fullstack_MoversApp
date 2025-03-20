@@ -3,14 +3,32 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime 
-
+from dotenv import load_dotenv
+import os
+import requests
+import uuid
 app = Flask(__name__)
+
+load_dotenv()
+
 CORS(app)  # Enable CORS for all routes
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///moving_app.db'
 db = SQLAlchemy(app)
 
+INTASEND_PUBLIC_KEY = os.getenv('INTASEND_PUBLIC_KEY')
+INTASEND_SECRET_KEY = os.getenv('INTASEND_SECRET_KEY')
+INTASEND_API_BASE = 'https://sandbox.intasend.com/api/v1'
 # Models
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    transaction_id = db.Column(db.String(100), unique=True, nullable=False)
+    intasend_id = db.Column(db.String(100), nullable=True)
+    amount = db.Column(db.Float, nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # deposit, payment, withdrawal
+    status = db.Column(db.String(50), default='pending')  # pending, completed, failed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
@@ -295,37 +313,87 @@ def ban_user(user_id):
 
 # Wallet Management
 @app.route('/api/user/deposit', methods=['POST'])
-def deposit():
+def create_deposit():
     data = request.get_json()
     user_id = data.get('user_id')
     amount = data.get('amount')
-
+    
     if not user_id or not amount:
         return jsonify({'error': 'User ID and amount are required'}), 400
-
+    
+    # Check if user exists
     user = User.query.get_or_404(user_id)
-    user.balance += amount
+    
+    # Generate a unique transaction ID
+    transaction_id = str(uuid.uuid4())
+    
+    # Create a new transaction
+    transaction = Transaction(
+        user_id=user_id,
+        transaction_id=transaction_id,
+        amount=amount,
+        type='deposit',
+        status='pending'
+    )
+    
+    db.session.add(transaction)
     db.session.commit()
-
-    return jsonify({'message': 'Deposit successful!', 'new_balance': user.balance})
-
-@app.route('/api/driver/withdraw', methods=['POST'])
-def withdraw():
+    
+    return jsonify({
+        'message': 'Deposit initiated',
+        'transaction_id': transaction_id
+    })
+@app.route('/api/user/update-transaction', methods=['POST'])
+def update_transaction():
     data = request.get_json()
-    driver_id = data.get('driver_id')
-    amount = data.get('amount')
-
-    if not driver_id or not amount:
-        return jsonify({'error': 'Driver ID and amount are required'}), 400
-
-    driver = Driver.query.get_or_404(driver_id)
-    if driver.earnings < amount:
-        return jsonify({'error': 'Insufficient earnings'}), 400
-
-    driver.earnings -= amount
+    transaction_id = data.get('transaction_id')
+    intasend_id = data.get('intasend_id')
+    
+    if not transaction_id or not intasend_id:
+        return jsonify({'error': 'Transaction ID and IntaSend ID are required'}), 400
+    
+    transaction = Transaction.query.filter_by(transaction_id=transaction_id).first()
+    if not transaction:
+        return jsonify({'error': 'Transaction not found'}), 404
+    
+    transaction.intasend_id = intasend_id
     db.session.commit()
+    
+    return jsonify({
+        'message': 'Transaction updated successfully'
+    })
 
-    return jsonify({'message': 'Withdrawal successful!', 'new_earnings': driver.earnings})
+@app.route('/api/user/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify({
+        'id': user.id,
+        'name': user.name,
+        'email': user.email,
+        'phone': user.phone,
+        'balance': user.balance,
+        'role': user.role
+    })
+@app.route('/api/user/payment-history/<int:user_id>', methods=['GET'])
+def payment_history(user_id):
+    # First check if user exists
+    user = User.query.get_or_404(user_id)
+    
+    # Get all transactions for this user
+    transactions = Transaction.query.filter_by(user_id=user_id).order_by(Transaction.created_at.desc()).all()
+    
+    payments = [{
+        'id': transaction.id,
+        'transaction_id': transaction.transaction_id,
+        'type': transaction.type,
+        'amount': transaction.amount,
+        'status': transaction.status,
+        'created_at': transaction.created_at
+    } for transaction in transactions]
+    
+    return jsonify({
+        'payments': payments
+    })
 
 # Order History
 @app.route('/api/user/order-history/<int:user_id>', methods=['GET'])
@@ -437,8 +505,78 @@ def reply_support_ticket(ticket_id):
 
     return jsonify({'message': 'Support ticket resolved successfully!'})
 
-# Add these new routes to your movers.py Flask application
+@app.route('/api/user/transaction-status/<transaction_id>', methods=['GET'])
+def check_transaction_status(transaction_id):
+    transaction = Transaction.query.filter_by(transaction_id=transaction_id).first()
+    if not transaction:
+        return jsonify({'error': 'Transaction not found'}), 404
+    
+    # If the transaction already has a final status, return it
+    if transaction.status in ['completed', 'failed']:
+        return jsonify({'status': transaction.status})
+    
+    # If we have an IntaSend ID, check with IntaSend
+    if transaction.intasend_id:
+        try:
+            # Make a request to IntaSend to check the status
+            headers = {
+                'Authorization': f'Bearer {INTASEND_SECRET_KEY}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.get(
+                f'{INTASEND_API_BASE}/payment/status/{transaction.intasend_id}/',
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                intasend_status = response.json().get('status')
+                
+                # Map IntaSend status to our status
+                if intasend_status == 'COMPLETE':
+                    transaction.status = 'completed'
+                    
+                    # Update user balance
+                    user = User.query.get(transaction.user_id)
+                    user.balance += transaction.amount
+                    
+                elif intasend_status == 'FAILED':
+                    transaction.status = 'failed'
+                
+                db.session.commit()
+        
+        except Exception as e:
+            print(f"Error checking IntaSend status: {e}")
+    
+    return jsonify({'status': transaction.status})
 
+# Callback URL for IntaSend
+@app.route('/api/callback/deposit/<transaction_id>', methods=['POST'])
+def intasend_callback(transaction_id):
+    data = request.get_json()
+    
+    # Verify the request is coming from IntaSend (you should implement proper verification)
+    # For now, just log the callback data
+    print(f"IntaSend Callback for {transaction_id}: {data}")
+    
+    # Find the transaction
+    transaction = Transaction.query.filter_by(transaction_id=transaction_id).first()
+    if not transaction:
+        return jsonify({'error': 'Transaction not found'}), 404
+    
+    if data.get('status') == 'COMPLETE':
+        transaction.status = 'completed'
+        
+        # Update user balance
+        user = User.query.get(transaction.user_id)
+        user.balance += transaction.amount
+        
+    elif data.get('status') == 'FAILED':
+        transaction.status = 'failed'
+    
+    db.session.commit()
+    
+    return jsonify({'message': 'Callback processed successfully'})
 # GET all support tickets for a specific user
 @app.route('/api/user/support-tickets', methods=['GET'])
 def get_user_support_tickets():

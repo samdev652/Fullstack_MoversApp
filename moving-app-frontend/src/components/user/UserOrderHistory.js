@@ -1,45 +1,71 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const UserOrderHistory = () => {
-  const { user } = useAuth();
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Dummy user data
+  const dummyUser = { id: 1, name: 'John Doe' };
+  
+  // Dummy orders data
+  const dummyOrders = [
+    {
+      id: 1001,
+      status: 'pending',
+      created_at: new Date(2025, 2, 18, 10, 30).toISOString(),
+      pickup_location: '123 Main St, Downtown',
+      dropoff_location: '456 Park Ave, Uptown',
+      driver_id: 'D-501',
+      price: 25.50
+    },
+    {
+      id: 1002,
+      status: 'accepted',
+      created_at: new Date(2025, 2, 17, 14, 15).toISOString(),
+      pickup_location: '789 Broadway, Midtown',
+      dropoff_location: '321 River Rd, Westside',
+      driver_id: 'D-342',
+      price: 18.75
+    },
+    {
+      id: 1003,
+      status: 'completed',
+      created_at: new Date(2025, 2, 15, 9, 45).toISOString(),
+      pickup_location: '555 Ocean Dr, Seaside',
+      dropoff_location: '777 Mountain View, Highlands',
+      driver_id: 'D-128',
+      price: 32.00
+    },
+    {
+      id: 1004,
+      status: 'cancelled',
+      created_at: new Date(2025, 2, 10, 16, 20).toISOString(),
+      pickup_location: '999 College Blvd, University',
+      dropoff_location: '888 Market St, Financial District',
+      driver_id: 'D-205',
+      price: 15.25
+    }
+  ];
+
+  const [orders, setOrders] = useState(dummyOrders);
+  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
-    const fetchOrderHistory = async () => {
-      try {
-        const response = await axios.get(`/api/user/order-history/${user.id}`);
-        setOrders(response.data.orders);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching order history:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchOrderHistory();
-  }, [user.id]);
-
-  const filteredOrders = filter === 'all' 
-    ? orders 
+  const filteredOrders = filter === 'all'
+    ? orders
     : orders.filter(order => order.status === filter);
 
-  const handleCancelOrder = async (bookingId) => {
+  const handleCancelOrder = (bookingId) => {
     try {
-      await axios.post(`/api/user/cancel-order/${bookingId}`);
-      
       // Update local state
-      setOrders(orders.map(order => 
-        order.booking_id === bookingId 
-          ? { ...order, status: 'cancelled' } 
+      setOrders(orders.map(order =>
+        order.id === bookingId
+          ? { ...order, status: 'cancelled' }
           : order
       ));
+      toast.success('Order cancelled successfully!');
     } catch (error) {
       console.error('Error cancelling order:', error);
+      toast.error('Failed to cancel order. Please try again.');
     }
   };
 
@@ -49,7 +75,7 @@ const UserOrderHistory = () => {
   };
 
   return (
-    <div>
+    <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Your Order History</h1>
       
       {/* Filter tabs */}
@@ -87,7 +113,7 @@ const UserOrderHistory = () => {
           </button>
         </div>
       </div>
-      
+
       {loading ? (
         <div className="text-center py-8">
           <p>Loading order history...</p>
@@ -95,8 +121,8 @@ const UserOrderHistory = () => {
       ) : filteredOrders.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <p className="text-gray-600 mb-4">No {filter !== 'all' ? filter : ''} orders found.</p>
-          <Link 
-            to="/user/book-driver" 
+          <Link
+            to="/user/book-driver"
             className="inline-block bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
           >
             Book a Driver
@@ -105,11 +131,11 @@ const UserOrderHistory = () => {
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => (
-            <div key={order.booking_id} className="bg-white rounded-lg shadow p-4">
+            <div key={order.id} className="bg-white rounded-lg shadow p-4">
               <div className="md:flex justify-between">
                 <div>
                   <div className="flex items-center">
-                    <p className="font-medium text-lg">Booking #{order.booking_id}</p>
+                    <p className="font-medium text-lg">Booking #{order.id}</p>
                     <span className={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${
                       order.status === 'completed' ? 'bg-green-100 text-green-800' :
                       order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
@@ -131,27 +157,27 @@ const UserOrderHistory = () => {
                   <p className="mt-2">
                     <span className="font-medium">Driver ID:</span> {order.driver_id}
                   </p>
+                  <p className="mt-2">
+                    <span className="font-medium">Price:</span> ${order.price.toFixed(2)}
+                  </p>
                 </div>
-                
                 <div className="mt-4 md:mt-0 md:text-right">
                   {order.status === 'pending' && (
                     <button
-                      onClick={() => handleCancelOrder(order.booking_id)}
+                      onClick={() => handleCancelOrder(order.id)}
                       className="bg-red-100 text-red-700 py-1 px-3 rounded-md hover:bg-red-200 transition-colors mr-2"
                     >
                       Cancel Booking
                     </button>
                   )}
-                  
                   {order.status === 'accepted' && (
                     <Link
-                      to={`/user/track/${order.booking_id}`}
+                      to={`/user/track/${order.id}`}
                       className="bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition-colors"
                     >
                       Track Driver
                     </Link>
                   )}
-                  
                   {order.status === 'completed' && (
                     <button
                       className="bg-yellow-100 text-yellow-700 py-1 px-3 rounded-md hover:bg-yellow-200 transition-colors"

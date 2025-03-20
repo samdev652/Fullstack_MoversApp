@@ -24,7 +24,7 @@ const UserDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`/api/user/order-history/${currentUser.id}`);
+        const response = await axios.get(`http://127.0.0.1:5000/api/user/order-history/${currentUser.id}`);
         const orders = response.data.orders;
         
         // Get most recent 3 bookings

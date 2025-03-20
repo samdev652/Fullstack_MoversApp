@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
 
 const TrackDriver = () => {
   const { bookingId } = useParams();
@@ -9,65 +8,85 @@ const TrackDriver = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Reference for polling interval
-  const pollingIntervalRef = useRef(null);
+  // Reference for simulation interval
+  const simulationIntervalRef = useRef(null);
+
+  // Dummy data for tracking - Starting point in Nairobi
+  const dummyTrackingData = {
+    location: "-1.2864,36.8172", // Nairobi CBD coordinates
+    heading: 45,
+    speed: 35,
+    last_updated: new Date().toISOString()
+  };
+
+  // Dummy data for booking details with Kenyan context
+  const dummyBookingDetails = {
+    booking_id: parseInt(bookingId || 12345),
+    pickup_location: "Junction Mall, Ngong Road, Nairobi",
+    dropoff_location: "Lavington Mall, James Gichuru Road",
+    status: "in_progress",
+    driver_name: "David Kamau",
+    driver_phone: "0722 123 456",
+    vehicle: "Toyota Fielder",
+    vehicle_color: "Silver",
+    license_plate: "KCF 234P"
+  };
 
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        // Fetch booking details (this would be a separate endpoint in a real app)
-        const bookingResponse = await axios.get(`/api/user/track/${bookingId}`);
-        setTrackingData(bookingResponse.data);
-        
-        // Simulating booking details since we don't have a specific endpoint
-        // In a real app, you would fetch this from the backend
-        setBookingDetails({
-          booking_id: parseInt(bookingId),
-          pickup_location: "123 Main St",
-          dropoff_location: "456 Elm St",
-          status: "accepted",
-          driver_name: "John Doe",
-          driver_phone: "555-123-4567"
-        });
-        
+    // Simulate initial data loading
+    const loadDummyData = () => {
+      setTimeout(() => {
+        setTrackingData(dummyTrackingData);
+        setBookingDetails(dummyBookingDetails);
         setLoading(false);
-      } catch (error) {
-        console.error('Error fetching tracking data:', error);
-        setError('Failed to load tracking information. Please try again.');
-        setLoading(false);
-      }
+      }, 1500); // Simulate a short loading time
     };
 
-    fetchInitialData();
+    loadDummyData();
 
-    // Set up polling interval for real-time updates
-    pollingIntervalRef.current = setInterval(async () => {
-      try {
-        const response = await axios.get(`/api/user/track/${bookingId}`);
-        setTrackingData(response.data);
-      } catch (error) {
-        console.error('Error polling tracking data:', error);
-      }
-    }, 10000); // Poll every 10 seconds
+    // Simulate real-time updates by slightly changing the location every few seconds
+    let movingNorth = true;
+    let movingEast = true;
+    
+    simulationIntervalRef.current = setInterval(() => {
+      setTrackingData(prevData => {
+        if (!prevData) return dummyTrackingData;
+        
+        const [lat, lng] = prevData.location.split(',').map(Number);
+        
+        // Randomly change direction occasionally
+        if (Math.random() < 0.2) movingNorth = !movingNorth;
+        if (Math.random() < 0.2) movingEast = !movingEast;
+        
+        // Update location by a small random amount
+        const latDelta = (Math.random() * 0.001) * (movingNorth ? 1 : -1);
+        const lngDelta = (Math.random() * 0.001) * (movingEast ? 1 : -1);
+        
+        return {
+          ...prevData,
+          location: `${(lat + latDelta).toFixed(6)},${(lng + lngDelta).toFixed(6)}`,
+          speed: Math.floor(25 + Math.random() * 20), // Random speed between 25-45 kph
+          last_updated: new Date().toISOString()
+        };
+      });
+    }, 5000); // Update every 5 seconds
 
     // Cleanup interval on component unmount
     return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
+      if (simulationIntervalRef.current) {
+        clearInterval(simulationIntervalRef.current);
       }
     };
   }, [bookingId]);
 
-  const parseCoordinates = (locationString) => {
-    if (!locationString) return null;
-    
-    // Assuming location string is in format "latitude,longitude"
-    const [lat, lng] = locationString.split(',').map(Number);
-    return { lat, lng };
+  const formatDateTime = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <div>
+    <div className="container mx-auto px-4 py-6">
       <div className="mb-4">
         <Link to="/user/orders" className="text-blue-600 hover:text-blue-800">
           ← Back to Orders
@@ -113,6 +132,12 @@ const TrackDriver = () => {
                   <p>
                     <span className="font-medium">Phone:</span> {bookingDetails.driver_phone}
                   </p>
+                  <p>
+                    <span className="font-medium">Vehicle:</span> {bookingDetails.vehicle_color} {bookingDetails.vehicle}
+                  </p>
+                  <p>
+                    <span className="font-medium">License:</span> {bookingDetails.license_plate}
+                  </p>
                 </div>
                 
                 <button className="mt-4 bg-blue-600 text-white w-full py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
@@ -124,19 +149,96 @@ const TrackDriver = () => {
                 </button>
               </div>
             </div>
+            
+            {/* Fare estimate */}
+            <div className="bg-white rounded-lg shadow p-6 mt-4">
+              <h2 className="text-xl font-semibold mb-4">Fare Estimate</h2>
+              <div className="flex justify-between mb-2">
+                <span>Base fare</span>
+                <span>KSh 200</span>
+              </div>
+              <div className="flex justify-between mb-2">
+                <span>Distance (5.3 km)</span>
+                <span>KSh 350</span>
+              </div>
+              <div className="flex justify-between mb-2">
+                <span>Time</span>
+                <span>KSh 100</span>
+              </div>
+              <div className="border-t pt-2 mt-2 font-medium flex justify-between">
+                <span>Total</span>
+                <span>KSh 650</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Paid via M-PESA</p>
+            </div>
           </div>
-          // Tracking Map & Updates
+          
+          {/* Tracking Map & Updates */}
           <div className="md:col-span-2">
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold mb-4">Driver Location</h2>
               {trackingData && trackingData.location ? (
-                <div className="h-64 w-full bg-gray-200 flex items-center justify-center rounded-lg">
-                  {/* Replace with an actual map component like Google Maps or Leaflet */}
-                  <p>Map Placeholder: Driver at {trackingData.location}</p>
+                <div>
+                  <div className="h-64 w-full bg-gray-200 flex items-center justify-center rounded-lg mb-4">
+                    {/* Replace with an actual map component like Google Maps or Leaflet */}
+                    <div className="text-center">
+                      <p className="font-medium">Map Placeholder</p>
+                      <p>Driver at coordinates: {trackingData.location}</p>
+                      <p className="mt-2 text-sm text-gray-600">
+                        Heading: {trackingData.heading}° | Speed: {trackingData.speed} km/h
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <p>Last updated: {formatDateTime(trackingData.last_updated)}</p>
+                    <p className="text-green-600">Driver is on the way</p>
+                  </div>
+                  <div className="mt-6 space-y-4">
+                    <div className="flex">
+                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                        1
+                      </div>
+                      <div className="ml-4">
+                        <p className="font-medium">Driver accepted your booking</p>
+                        <p className="text-sm text-gray-600">10:32 AM</p>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                        2
+                      </div>
+                      <div className="ml-4">
+                        <p className="font-medium">Driver is on the way</p>
+                        <p className="text-sm text-gray-600">10:36 AM</p>
+                      </div>
+                    </div>
+                    <div className="flex opacity-50">
+                      <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white">
+                        3
+                      </div>
+                      <div className="ml-4">
+                        <p className="font-medium">Arriving at Junction Mall</p>
+                        <p className="text-sm text-gray-600">Estimated: 10:45 AM</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <p className="text-gray-500">Location data unavailable.</p>
               )}
+            </div>
+            
+            {/* Traffic info */}
+            <div className="bg-white rounded-lg shadow p-6 mt-4">
+              <h2 className="text-xl font-semibold mb-4">Traffic Information</h2>
+              <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
+                <p className="text-amber-800 font-medium">Moderate traffic on Ngong Road</p>
+                <p className="text-sm text-amber-700 mt-1">Expect slight delays of 5-10 minutes due to construction near Adams Arcade</p>
+              </div>
+              <div className="mt-3 text-sm text-gray-600">
+                <p>Estimated time of arrival: 10:45 AM</p>
+                <p className="mt-1">Distance to pickup: 2.3 km</p>
+              </div>
             </div>
           </div>
         </div>

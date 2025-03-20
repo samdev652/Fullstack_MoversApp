@@ -1,59 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-import axios from 'axios';
 
 const UserNotifications = () => {
-  const { user } = useAuth();
+  // Dummy user data
+  const dummyUser = {
+    id: "usr_123456",
+    name: "John Doe",
+    email: "john.doe@example.com"
+  };
+  
+  // Initial dummy notifications
+  const initialNotifications = [
+    {
+      id: 1,
+      message: "Your deposit of $100.00 was successful",
+      created_at: "2025-03-19T14:30:22Z",
+      is_read: false
+    },
+    {
+      id: 2,
+      message: "Welcome to our platform! Complete your profile to get started.",
+      created_at: "2025-03-18T09:15:43Z",
+      is_read: false
+    },
+    {
+      id: 3,
+      message: "New feature alert: You can now withdraw funds directly to your M-Pesa account.",
+      created_at: "2025-03-15T17:45:10Z",
+      is_read: true
+    },
+    {
+      id: 4,
+      message: "Your account has been successfully created.",
+      created_at: "2025-03-10T11:22:33Z",
+      is_read: true
+    }
+  ];
+
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchNotifications();
+    // Simulate API call with timeout
+    const timer = setTimeout(() => {
+      setNotifications(initialNotifications);
+      setLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
   }, []);
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`/api/user/notifications/${user.id}`);
-      setNotifications(response.data.notifications);
-      setLoading(false);
-    } catch (error) {
-      toast.error('Failed to fetch notifications');
-      setLoading(false);
-    }
+  const markAsRead = (notificationId) => {
+    // Update the notifications list locally
+    setNotifications(notifications.map(notification => 
+      notification.id === notificationId 
+        ? { ...notification, is_read: true } 
+        : notification
+    ));
+    
+    toast.success('Notification marked as read');
   };
 
-  const markAsRead = async (notificationId) => {
-    try {
-      await axios.post(`/api/notifications/mark-read/${notificationId}`);
-      
-      // Update the notifications list locally
-      setNotifications(notifications.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, is_read: true } 
-          : notification
-      ));
-      
-      toast.success('Notification marked as read');
-    } catch (error) {
-      toast.error('Failed to mark notification as read');
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await axios.post(`/api/user/notifications/mark-all-read/${user.id}`);
-      
-      // Update all notifications as read
-      setNotifications(notifications.map(notification => (
-        { ...notification, is_read: true }
-      )));
-      
-      toast.success('All notifications marked as read');
-    } catch (error) {
-      toast.error('Failed to mark all notifications as read');
-    }
+  const markAllAsRead = () => {
+    // Update all notifications as read
+    setNotifications(notifications.map(notification => (
+      { ...notification, is_read: true }
+    )));
+    
+    toast.success('All notifications marked as read');
   };
 
   // Format the date for display

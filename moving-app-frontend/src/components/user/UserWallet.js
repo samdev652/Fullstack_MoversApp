@@ -1,82 +1,143 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-import axios from 'axios';
 
 const UserWallet = () => {
-  const { user } = useAuth();
-  const [balance, setBalance] = useState(0);
+  // Dummy user data
+  const dummyUser = {
+    id: "usr_123456",
+    name: "John Doe",
+    email: "john.doe@example.com",
+    phone: "+254712345678"
+  };
+
+  // Initial dummy data
+  const initialDummyTransactions = [
+    {
+      id: "txn_001",
+      transaction_id: "txn_001",
+      type: "deposit",
+      amount: 100.00,
+      created_at: "2025-03-15T14:30:22Z",
+      status: "completed"
+    },
+    {
+      id: "txn_002",
+      transaction_id: "txn_002",
+      type: "withdrawal",
+      amount: 25.50,
+      created_at: "2025-03-12T09:15:43Z",
+      status: "completed"
+    },
+    {
+      id: "txn_003",
+      transaction_id: "txn_003",
+      type: "deposit",
+      amount: 50.00,
+      created_at: "2025-03-10T17:45:10Z",
+      status: "failed"
+    }
+  ];
+
+  const [balance, setBalance] = useState(150.50);
   const [amount, setAmount] = useState('');
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [transactions, setTransactions] = useState(initialDummyTransactions);
+  const [loading, setLoading] = useState(false);
+  const [isDepositing, setIsDepositing] = useState(false);
 
   useEffect(() => {
-    fetchWalletData();
+    // Simulate loading data
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   }, []);
-
-  const fetchWalletData = async () => {
-    try {
-      setLoading(true);
-      // Fetch wallet balance
-      const balanceResponse = await axios.get(`/api/user/wallet/${user.id}`);
-      setBalance(balanceResponse.data.balance);
-      
-      // Fetch transaction history
-      const transactionsResponse = await axios.get(`/api/user/transactions/${user.id}`);
-      setTransactions(transactionsResponse.data.transactions);
-      
-      setLoading(false);
-    } catch (error) {
-      toast.error('Failed to fetch wallet data');
-      setLoading(false);
-    }
-  };
 
   const handleDeposit = async (e) => {
     e.preventDefault();
-    
+
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       toast.error('Please enter a valid amount');
       return;
     }
 
     try {
-      setLoading(true);
-      const response = await axios.post('/api/user/deposit', {
-        user_id: user.id,
-        amount: parseFloat(amount)
-      });
+      setIsDepositing(true);
       
-      setBalance(response.data.new_balance);
-      setAmount('');
-      fetchWalletData();
-      toast.success('Deposit successful!');
+      // Generate a random transaction ID
+      const transaction_id = "txn_" + Math.random().toString(36).substr(2, 9);
+      
+      // Create new dummy transaction
+      const newTransaction = {
+        id: transaction_id,
+        transaction_id,
+        type: 'deposit',
+        amount: parseFloat(amount),
+        created_at: new Date().toISOString(),
+        status: 'pending'
+      };
+      
+      // Add to transactions list
+      setTransactions([newTransaction, ...transactions]);
+      
+      toast.success('Deposit initiated! Simulating M-Pesa transaction...');
+      
+      // Simulate processing time
+      setTimeout(() => {
+        // 80% chance of success
+        const success = Math.random() < 0.8;
+        
+        if (success) {
+          // Update transaction status
+          setTransactions(prevTransactions => 
+            prevTransactions.map(t => 
+              t.transaction_id === transaction_id ? {...t, status: 'completed'} : t
+            )
+          );
+          
+          // Update balance
+          setBalance(prevBalance => prevBalance + parseFloat(amount));
+          toast.success('Deposit completed successfully!');
+        } else {
+          // Failed transaction
+          setTransactions(prevTransactions => 
+            prevTransactions.map(t => 
+              t.transaction_id === transaction_id ? {...t, status: 'failed'} : t
+            )
+          );
+          toast.error('Deposit failed. Please try again.');
+        }
+        
+        setAmount('');
+        setIsDepositing(false);
+      }, 3000); // 3 second simulation
+      
     } catch (error) {
-      toast.error('Deposit failed');
-    } finally {
-      setLoading(false);
+      console.error('Error simulating deposit:', error);
+      toast.error('Deposit simulation failed. Please try again.');
+      setIsDepositing(false);
     }
   };
 
-  // Function to format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">My Wallet</h1>
-      
+
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Current Balance</h2>
           <span className="text-2xl font-bold text-green-600">${balance.toFixed(2)}</span>
         </div>
-        
+
         <form onSubmit={handleDeposit} className="mt-4">
           <div className="mb-4">
-            <label htmlFor="amount" className="block text-gray-700 mb-2">Deposit Amount</label>
+            <label htmlFor="amount" className="block text-gray-700 mb-2">
+              Deposit Amount
+            </label>
             <input
               type="number"
               id="amount"
@@ -91,17 +152,17 @@ const UserWallet = () => {
           </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={isDepositing || loading}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-blue-300"
           >
-            {loading ? 'Processing...' : 'Deposit'}
+            {isDepositing ? 'Processing...' : 'Deposit via M-Pesa'}
           </button>
         </form>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4">Transaction History</h2>
-        
+
         {loading ? (
           <p className="text-center py-4">Loading transactions...</p>
         ) : transactions.length === 0 ? (
@@ -125,15 +186,20 @@ const UserWallet = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.transaction_id}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.type}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <span className={transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}>
-                        {transaction.amount > 0 ? '+' : ''}{transaction.amount.toFixed(2)}
+                      <span className={transaction.type === 'deposit' ? 'text-green-600' : 'text-red-600'}>
+                        {transaction.type === 'deposit' ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        ${transaction.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                          transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                          'bg-red-100 text-red-800'}`}>
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          transaction.status === 'completed'
+                            ? 'bg-green-100 text-green-800'
+                            : transaction.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
                         {transaction.status}
                       </span>
                     </td>

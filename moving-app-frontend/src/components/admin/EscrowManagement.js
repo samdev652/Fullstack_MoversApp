@@ -26,17 +26,27 @@ const EscrowManagement = () => {
 
   const handleReleasePayment = async (bookingId, driverId, amount) => {
     try {
-      // Update the driver's earnings
-      await axios.post('http://localhost:5000/api/admin/release-payment', {
-        booking_id: bookingId,
-        driver_id: driverId,
-        amount: amount
+      const response = await axios.post('https://api.intasend.com/v1/payouts/', {
+        currency: 'KES',
+        transactions: [
+          {
+            account: driverId, // Assuming the driver's bank account is stored in the user object
+            amount: parseFloat(amount),
+            narrative: 'Payment release from escrow'
+          }
+        ]
+      }, {
+        headers: {
+          'Authorization': `Bearer ${process.env.REACT_APP_INTASEND_SECRET_KEY}`
+        }
       });
-      
-      // Remove the processed order from the list
-      setEscrowOrders(escrowOrders.filter(order => order.booking_id !== bookingId));
-      
-      toast.success('Payment released successfully!');
+
+      if (response.data.status === 'success') {
+        setEscrowOrders(escrowOrders.filter(order => order.booking_id !== bookingId));
+        toast.success('Payment released successfully!');
+      } else {
+        toast.error('Failed to release payment');
+      }
     } catch (error) {
       console.error('Error releasing payment:', error);
       toast.error('Failed to release payment');
