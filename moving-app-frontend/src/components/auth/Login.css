@@ -145,4 +145,30 @@
     width: 100%; /* Ensures each group is confined to the container */
     margin-bottom: 15px;
   }
+
+  /* === Styling for the Given Class Name === */
+.login-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* === Moving Text Using ID === */
+#moving-text {
+  display: inline-block;
+  white-space: nowrap; /* Keeps the text on one line */
+  animation: moveRight 8s linear infinite; /* Smooth left-to-right movement */
+}
+
+/* === Animation Keyframes === */
+@keyframes moveRight {
+  from {
+    transform: translateX(-100%); /* Start offscreen to the left */
+  }
+  to {
+    transform: translateX(100%); /* Move offscreen to the right */
+  }
+}
+
       

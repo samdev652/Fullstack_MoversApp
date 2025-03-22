@@ -1,0 +1,46 @@
+/* === Footer Container === */
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #003366; /* Dark blue background */
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+    overflow: hidden; /* Ensures clean scrolling effect */
+    box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    height: 40px; /* Sets height for scrolling content */
+  }
+  
+  /* === Scrolling Text === */
+  .scrolling-text {
+    display: inline-block;
+    white-space: nowrap;
+    padding: 10px 0;
+    animation: scrollText 10s linear infinite;
+  }
+  
+  /* === Animation Keyframes === */
+  @keyframes scrollText {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+  
+  /* === Email Link Styling === */
+  .email-link {
+    color: #ffd700; /* Golden color for email */
+    font-weight: bold;
+    text-decoration: none;
+    margin-left: 5px;
+    transition: color 0.3s ease;
+  }
+  
+  .email-link:hover {
+    color: #ffae42; /* Lighter shade on hover */
+  }
+  

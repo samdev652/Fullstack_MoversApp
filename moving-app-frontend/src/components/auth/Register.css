@@ -117,3 +117,25 @@
     }
   }
   
+/* === Register Title Styling === */
+.register-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px; /* Reduced from 20px to 10px */
+  color: #333333;
+}
+
+/* === Form Description Styling === */
+.register-description {
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 5px; /* Adjusted to minimize extra space */
+  color: #666666;
+}
+
+/* === Form Group Styling === */
+.form-group {
+  margin-top: 0; /* Removes any extra top margin */
+  margin-bottom: 15px; /* Keeps form spacing consistent */
+}

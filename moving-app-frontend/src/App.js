@@ -16,6 +16,7 @@ import Register from "./components/auth/Register";
 import Navbar from "./components/layout/Navbar";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 
+
 // User Components
 import UserDashboard from "./components/user/UserDashboard";
 import BookDriver from "./components/user/BookDriver";
@@ -24,6 +25,7 @@ import TrackDriver from "./components/user/TrackDriver";
 import UserNotifications from "./components/user/UserNotifications";
 import UserWallet from "./components/user/UserWallet";
 import UserSupportTickets from "./components/user/UserSupportTickets";
+
 
 // Driver Components
 import DriverDashboard from "./components/driver/DriverDashboard";
@@ -42,6 +44,7 @@ import PromoCodeManagement from "./components/admin/PromoCodeManagement";
 
 // Home Page Component
 import Home from "./components/Home"; // Import the Home component
+import Footer from "./components/Footer";
 
 // Context Provider
 import { AuthProvider } from "./context/AuthContext";
@@ -214,6 +217,7 @@ function App() {
         </div>
         <ToastContainer position="bottom-right" />
       </Router>
+      <Footer /> {/* Footer is displayed on all pages */}
     </AuthProvider>
   );
 }
