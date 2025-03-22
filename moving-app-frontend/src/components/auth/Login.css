@@ -1,157 +1,136 @@
+/* === Email and Password Labels === */
+label[for="email"],
+label[for="password"] {
+  color: #007f7f; /* Aqua marine for email and password labels */
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
 /* === Login Container === */
 .login-container {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-  }
-  
-  .login-title {
-    font-size: 1.8rem;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333333;
-  }
-  
-  /* === Form Styles === */
-  .login-form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-label {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #555555;
-    margin-bottom: 5px;
-  }
-  
-  .form-input {
-    width: 100%;
-    padding: 10px 15px;
-    font-size: 0.95rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    transition: border 0.3s, box-shadow 0.3s;
-  }
-  
-  .form-input:focus {
-    border-color: #4c9ffe;
-    box-shadow: 0px 4px 10px rgba(76, 159, 254, 0.2);
-    outline: none;
-  }
-  
-  .form-button {
-    background: linear-gradient(145deg, #4c9ffe, #007bff);
-    color: #fff;
-    padding: 10px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
-  }
-  
-  .form-button:hover {
-    background: linear-gradient(145deg, #007bff, #0056b3);
-    transform: scale(1.02);
-  }
-  
-  .form-button:disabled {
-    background: #b0c4de;
-    cursor: not-allowed;
-  }
-  
-  /* === Register Link === */
-  .register-link {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 0.9rem;
-  }
-  
-  .register-link-text {
-    color: #007bff;
-    font-weight: bold;
-    text-decoration: none;
-  }
-  
-  .register-link-text:hover {
-    color: #0056b3;
-  }
-  .form-input {
-    width: 100%;
-    padding: 12px 15px;
-    font-size: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    transition: border 0.3s, box-shadow 0.3s;
-    color: #333; /* Ensures text is visible */
-    background-color: #fff; /* Provides contrast */
-  }
-  
-  .form-input:focus {
-    border-color: #4c9ffe;
-    box-shadow: 0px 4px 10px rgba(76, 159, 254, 0.2);
-    outline: none;
-  }
-  
-  .form-input::placeholder {
-    color: #aaa; /* Keeps placeholder subtle */
-    opacity: 1; /* Ensures placeholder visibility */
-  }
-/* === Login Container Fix === */
-.login-container {
-    max-width: 400px; /* Keeps the login window constrained */
-    margin: 50px auto;
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-    overflow: hidden; /* Prevents content from spilling outside */
-  }
-  
-  /* === Input Fields Fix === */
-  .form-input {
-    width: calc(100% - 30px); /* Adjusts width to stay inside container */
-    padding: 10px 15px;
-    font-size: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-sizing: border-box; /* Ensures padding doesn't affect overall size */
-    transition: border 0.3s, box-shadow 0.3s;
-  }
-  
-  .form-input:focus {
-    border-color: #4c9ffe;
-    box-shadow: 0px 4px 10px rgba(76, 159, 254, 0.2);
-    outline: none;
-  }
-  
-  /* === Form Fix === */
-  .login-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centers elements within the form */
-  }
-  
-  .form-group {
-    width: 100%; /* Ensures each group is confined to the container */
-    margin-bottom: 15px;
-  }
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+  border-radius: 10px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+  position: relative; /* Ensures the container is positioned correctly */
+  z-index: 1; /* Ensures the container is above the background */
+  overflow: hidden; /* Prevents content from spilling outside */
+}
 
-  /* === Styling for the Given Class Name === */
+/* Background Image */
+.login-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("../../assets/background.jpg"); /* Path to the background image */
+  background-size: cover; /* Ensures the image covers the entire container */
+  background-position: center; /* Centers the background image */
+  background-repeat: no-repeat; /* Prevents the image from repeating */
+  z-index: -1; /* Places the background behind the content */
+  filter: blur(2px); /* Optional: Adds a slight blur effect to the background */
+}
+
+/* === Login Title === */
 .login-title {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
   text-align: center;
   margin-bottom: 20px;
+  color: #333333; /* Dark gray for contrast */
+}
+
+/* === Form Styles === */
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+/* === Email and Password Labels === */
+label[for="email"],
+label[for="password"] {
+  color: #007f7f; /* Aqua marine for email and password labels */
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 0.95rem;
+  border: 1px solid #7fffd4; /* Aqua marine border */
+  border-radius: 8px;
+  transition: border 0.3s, box-shadow 0.3s;
+  box-sizing: border-box; /* Ensures padding doesn't affect overall size */
+  background-color: #e0ffff; /* Light aqua marine for input background */
+  color: #333333; /* Dark gray for text */
+}
+
+/* Placeholder text styling */
+.form-input::placeholder {
+  color: #007f7f; /* Aqua marine for placeholder text */
+  opacity: 1; /* Ensures the placeholder is fully visible */
+}
+
+.form-input:focus {
+  border-color: #00ced1; /* Darker aqua marine for focus */
+  box-shadow: 0px 4px 10px rgba(0, 206, 209, 0.2); /* Aqua marine shadow */
+  outline: none;
+}
+
+.form-button {
+  background: linear-gradient(
+    145deg,
+    #00ced1,
+    #20b2aa
+  ); /* Aqua marine gradient */
+  color: #fff;
+  padding: 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.form-button:hover {
+  background: linear-gradient(
+    145deg,
+    #20b2aa,
+    #008b8b
+  ); /* Darker aqua marine gradient */
+  transform: scale(1.02);
+}
+
+.form-button:disabled {
+  background: #b0c4de; /* Light gray for disabled state */
+  cursor: not-allowed;
+}
+
+/* === Register Link === */
+.register-link {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.register-link-text {
+  color: #00ced1; /* Aqua marine for link */
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.register-link-text:hover {
+  color: #008b8b; /* Darker aqua marine for hover */
 }
 
 /* === Moving Text Using ID === */
@@ -159,6 +138,7 @@
   display: inline-block;
   white-space: nowrap; /* Keeps the text on one line */
   animation: moveRight 8s linear infinite; /* Smooth left-to-right movement */
+  color: #00ced1; /* Aqua marine for moving text */
 }
 
 /* === Animation Keyframes === */
@@ -170,5 +150,3 @@
     transform: translateX(100%); /* Move offscreen to the right */
   }
 }
-
-      

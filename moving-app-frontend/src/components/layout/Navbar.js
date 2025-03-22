@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import AuthContext from '../../context/AuthContext';
-import './Navbar.css'; // Import custom CSS for styling
+import React, { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import AuthContext from "../../context/AuthContext";
+import "./Navbar.css"; // Import custom CSS for styling
 
 const Navbar = () => {
   const { currentUser, logout } = useContext(AuthContext);
@@ -9,7 +9,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -24,36 +24,68 @@ const Navbar = () => {
         <div className="navbar-links">
           {!currentUser ? (
             <>
-              <Link to="/login" className="navbar-link">Login</Link>
-              <Link to="/register" className="navbar-link">Register</Link>
+              <Link to="/login" className="navbar-link">
+                Login
+              </Link>
+              <Link to="/register" className="navbar-link">
+                Register
+              </Link>
             </>
           ) : (
             <>
               {/* Role-specific links */}
-              {currentUser.role === 'user' && (
+              {currentUser.role === "user" && (
                 <>
-                  <Link to="/user/dashboard" className="navbar-link">Dashboard</Link>
-                  <Link to="/user/book-driver" className="navbar-link">Book Driver</Link>
-                  <Link to="/user/orders" className="navbar-link">My Orders</Link>
-                  <Link to="/user/wallet" className="navbar-link">Wallet</Link>
-                  <Link to="/user/notifications" className="navbar-link">Notifications</Link>
+                  <Link to="/user/dashboard" className="navbar-link">
+                    Dashboard
+                  </Link>
+                  <Link to="/user/book-driver" className="navbar-link">
+                    Book Driver
+                  </Link>
+                  <Link to="/user/orders" className="navbar-link">
+                    My Orders
+                  </Link>
+                  <Link to="/user/wallet" className="navbar-link">
+                    Wallet
+                  </Link>
+                  <Link to="/user/notifications" className="navbar-link">
+                    Notifications
+                  </Link>
                 </>
               )}
-              {currentUser.role === 'driver' && (
+              {currentUser.role === "driver" && (
                 <>
-                  <Link to="/driver/dashboard" className="navbar-link">Dashboard</Link>
-                  <Link to="/driver/available-orders" className="navbar-link">Available Orders</Link>
-                  <Link to="/driver/orders" className="navbar-link">My Orders</Link>
-                  <Link to="/driver/wallet" className="navbar-link">Earnings</Link>
-                  <Link to="/driver/notifications" className="navbar-link">Notifications</Link>
+                  <Link to="/driver/dashboard" className="navbar-link">
+                    Dashboard
+                  </Link>
+                  <Link to="/driver/available-orders" className="navbar-link">
+                    Available Orders
+                  </Link>
+                  <Link to="/driver/orders" className="navbar-link">
+                    My Orders
+                  </Link>
+                  <Link to="/driver/wallet" className="navbar-link">
+                    Earnings
+                  </Link>
+                  <Link to="/driver/notifications" className="navbar-link">
+                    Notifications
+                  </Link>
                 </>
               )}
-              {currentUser.role === 'admin' && (
+              {currentUser.role === "admin" && (
                 <>
-                  <Link to="/admin/dashboard" className="navbar-link">Dashboard</Link>
-                  <Link to="/admin/manage-users" className="navbar-link">Users</Link>
-                  <Link to="/admin/manage-drivers" className="navbar-link">Drivers</Link>
-                  <Link to="/admin/support-tickets" className="navbar-link">Support</Link>
+                  <Link to="/admin/dashboard" className="navbar-link">
+                    Dashboard
+                  </Link>
+                  <Link to="/admin/manage-users" className="navbar-link">
+                    Users
+                  </Link>
+                  <Link to="/admin/manage-drivers" className="navbar-link">
+                    Drivers
+                  </Link>
+                  <Link to="/admin/support-tickets" className="navbar-link">
+                    Support
+                  </Link>
                 </>
               )}
 

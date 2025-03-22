@@ -1,141 +1,165 @@
 /* === Registration Container === */
 .register-container {
-    max-width: 400px;
-    margin: 3rem auto;
-    padding: 2rem;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
-  }
-  
-  .register-container h2 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-align: center;
-    color: #333333;
-    margin-bottom: 1.5rem;
-  }
-  
-  /* === Form Styles === */
-  .register-form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .form-label {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #555555;
-    margin-bottom: 0.5rem;
-  }
-  
-  .form-input, .form-select {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    box-sizing: border-box;
-    transition: border 0.3s, box-shadow 0.3s;
-    color: #333;
-    background-color: #fff;
-  }
-  
-  .form-input:focus, .form-select:focus {
-    border: 1px solid #4c9ffe;
-    box-shadow: 0px 4px 8px rgba(76, 159, 254, 0.2);
-    outline: none;
-  }
-  
-  .form-select {
-    appearance: none; /* Removes default browser styling */
-  }
-  
-  /* === Submit Button === */
-  .form-button {
-    width: 100%;
-    background: linear-gradient(145deg, #4c9ffe, #007bff);
-    color: #fff;
-    padding: 12px 20px;
-    font-size: 1rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
-    box-shadow: 0px 4px 10px rgba(76, 159, 254, 0.3);
-  }
-  
-  .form-button:hover {
-    background: linear-gradient(145deg, #007bff, #0056b3);
-    transform: translateY(-3px);
-  }
-  
-  .form-button:disabled {
-    background: #b0c4de;
-    cursor: not-allowed;
-  }
-  
-  /* === Link Section === */
-  .register-link {
-    margin-top: 1.5rem;
-    text-align: center;
-  }
-  
-  .register-link-text {
-    color: #007bff;
-    font-weight: bold;
-    text-decoration: none;
-    transition: color 0.3s;
-  }
-  
-  .register-link-text:hover {
-    color: #0056b3;
-  }
-  
-  /* === Media Queries for Responsiveness === */
-  @media (max-width: 768px) {
-    .register-container {
-      padding: 1.5rem;
-      margin: 2rem auto;
-    }
-  
-    .register-container h2 {
-      font-size: 1.5rem;
-    }
-  
-    .form-button {
-      font-size: 0.9rem;
-    }
-  
-    .form-input, .form-select {
-      font-size: 0.9rem;
-    }
-  }
-  
-/* === Register Title Styling === */
+  max-width: 400px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+  border-radius: 12px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+  position: relative; /* Ensures the container is positioned correctly */
+  z-index: 1; /* Ensures the container is above the background */
+  overflow: hidden; /* Prevents content from spilling outside */
+}
+
+/* Background Image */
+.register-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("../../assets/background.jpg"); /* Path to the background image */
+  background-size: cover; /* Ensures the image covers the entire container */
+  background-position: center; /* Centers the background image */
+  background-repeat: no-repeat; /* Prevents the image from repeating */
+  z-index: -1; /* Places the background behind the content */
+  filter: blur(2px); /* Optional: Adds a slight blur effect to the background */
+}
+
+/* === Register Title === */
 .register-title {
   font-size: 1.8rem;
   font-weight: bold;
   text-align: center;
   margin-bottom: 10px; /* Reduced from 20px to 10px */
-  color: #333333;
+  color: #007f7f; /* Aqua marine for title */
 }
 
-/* === Form Description Styling === */
+/* === Form Description === */
 .register-description {
   font-size: 1rem;
   text-align: center;
   margin-bottom: 5px; /* Adjusted to minimize extra space */
-  color: #666666;
+  color: #007f7f; /* Aqua marine for description */
 }
 
-/* === Form Group Styling === */
+/* === Form Styles === */
+.register-form {
+  display: flex;
+  flex-direction: column;
+}
+
 .form-group {
-  margin-top: 0; /* Removes any extra top margin */
-  margin-bottom: 15px; /* Keeps form spacing consistent */
+  margin-bottom: 1rem;
+}
+
+/* === Labels === */
+.form-label {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #007f7f; /* Aqua marine for labels */
+  margin-bottom: 0.5rem;
+}
+
+/* === Input and Select Fields === */
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #7fffd4; /* Aqua marine border */
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border 0.3s, box-shadow 0.3s;
+  color: #007f7f; /* Aqua marine for text */
+  background-color: #e0ffff; /* Light aqua marine for input background */
+}
+
+/* Placeholder text styling */
+.form-input::placeholder {
+  color: #000000; /* Black for placeholder text */
+  opacity: 1; /* Ensures the placeholder is fully visible */
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: #00ced1; /* Darker aqua marine for focus */
+  box-shadow: 0px 4px 8px rgba(0, 206, 209, 0.2); /* Aqua marine shadow */
+  outline: none;
+}
+
+.form-select {
+  appearance: none; /* Removes default browser styling */
+}
+
+/* === Submit Button === */
+.form-button {
+  width: 100%;
+  background: linear-gradient(
+    145deg,
+    #00ced1,
+    #20b2aa
+  ); /* Aqua marine gradient */
+  color: #fff;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+  box-shadow: 0px 4px 10px rgba(76, 159, 254, 0.3);
+}
+
+.form-button:hover {
+  background: linear-gradient(
+    145deg,
+    #20b2aa,
+    #008b8b
+  ); /* Darker aqua marine gradient */
+  transform: translateY(-3px);
+}
+
+.form-button:disabled {
+  background: #b0c4de;
+  cursor: not-allowed;
+}
+
+/* === Link Section === */
+.register-link {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.register-link-text {
+  color: #007f7f; /* Aqua marine for link */
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.register-link-text:hover {
+  color: #0056b3; /* Darker aqua marine for hover */
+}
+
+/* === Media Queries for Responsiveness === */
+@media (max-width: 768px) {
+  .register-container {
+    padding: 1.5rem;
+    margin: 2rem auto;
+  }
+
+  .register-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .form-button {
+    font-size: 0.9rem;
+  }
+
+  .form-input,
+  .form-select {
+    font-size: 0.9rem;
+  }
 }
