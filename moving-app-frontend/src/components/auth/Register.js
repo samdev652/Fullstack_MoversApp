@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import AuthContext from '../../context/AuthContext';
+import './Register.css'; // Import custom CSS for styling
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,7 @@ const Register = () => {
     vehicle_type: '',
     license_plate: ''
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -28,11 +29,11 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     const result = await register(formData);
-    
+
     setIsLoading(false);
-    
+
     if (result.success) {
       toast.success('Registration successful! Please login.');
       navigate('/login');
@@ -42,103 +43,100 @@ const Register = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Register with Moving App</h2>
+    <div className="register-container">
+      <h2 className="register-title">Create Your Account</h2>
+      <p className="register-description">
+        Join our platform and experience seamless services tailored to you.
+      </p>
       
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-            Full Name
-          </label>
+      <form onSubmit={handleSubmit} className="register-form">
+        {/* Full Name Input */}
+        <div className="form-group">
+          <label htmlFor="name" className="form-label">Full Name</label>
           <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="name"
             type="text"
             name="name"
-            placeholder="Full Name"
+            placeholder="Enter your full name"
             value={formData.name}
             onChange={handleChange}
+            className="form-input"
             required
           />
         </div>
-        
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="phone">
-            Phone Number
-          </label>
+
+        {/* Phone Number Input */}
+        <div className="form-group">
+          <label htmlFor="phone" className="form-label">Phone Number</label>
           <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="phone"
             type="text"
             name="phone"
-            placeholder="Phone Number"
+            placeholder="Enter your phone number"
             value={formData.phone}
             onChange={handleChange}
+            className="form-input"
             required
           />
         </div>
-        
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-            Email
-          </label>
+
+        {/* Email Input */}
+        <div className="form-group">
+          <label htmlFor="email" className="form-label">Email</label>
           <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="email"
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="Enter your email"
             value={formData.email}
             onChange={handleChange}
+            className="form-input"
             required
           />
         </div>
-        
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-            Password
-          </label>
+
+        {/* Password Input */}
+        <div className="form-group">
+          <label htmlFor="password" className="form-label">Password</label>
           <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="password"
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="Create a password"
             value={formData.password}
             onChange={handleChange}
+            className="form-input"
             required
           />
         </div>
-        
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
-            Account Type
-          </label>
+
+        {/* Role Selection */}
+        <div className="form-group">
+          <label htmlFor="role" className="form-label">Account Type</label>
           <select
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="role"
             name="role"
             value={formData.role}
             onChange={handleChange}
+            className="form-select"
             required
           >
             <option value="user">Customer</option>
             <option value="driver">Driver</option>
           </select>
         </div>
-        
+
+        {/* Driver-Specific Fields */}
         {formData.role === 'driver' && (
           <>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="vehicle_type">
-                Vehicle Type
-              </label>
+            <div className="form-group">
+              <label htmlFor="vehicle_type" className="form-label">Vehicle Type</label>
               <select
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="vehicle_type"
                 name="vehicle_type"
                 value={formData.vehicle_type}
                 onChange={handleChange}
+                className="form-select"
                 required={formData.role === 'driver'}
               >
                 <option value="">Select Vehicle Type</option>
@@ -147,43 +145,37 @@ const Register = () => {
                 <option value="SUV">SUV</option>
               </select>
             </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="license_plate">
-                License Plate Number
-              </label>
+
+            <div className="form-group">
+              <label htmlFor="license_plate" className="form-label">License Plate Number</label>
               <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="license_plate"
                 type="text"
                 name="license_plate"
-                placeholder="License Plate Number"
+                placeholder="Enter license plate number"
                 value={formData.license_plate}
                 onChange={handleChange}
+                className="form-input"
                 required={formData.role === 'driver'}
               />
             </div>
           </>
         )}
-        
-        <div className="flex items-center justify-between">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-            type="submit"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Registering...' : 'Register'}
-          </button>
-        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className="form-button"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Registering...' : 'Register'}
+        </button>
       </form>
-      
-      <div className="mt-4 text-center">
-        <p>
-          Already have an account?{' '}
-          <Link to="/login" className="text-blue-500 hover:text-blue-700">
-            Login
-          </Link>
-        </p>
+
+      {/* Login Link */}
+      <div className="register-link">
+        Already have an account?{' '}
+        <Link to="/login" className="register-link-text">Login</Link>
       </div>
     </div>
   );

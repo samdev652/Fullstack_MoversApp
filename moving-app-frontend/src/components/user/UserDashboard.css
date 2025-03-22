@@ -1,0 +1,38 @@
+/* === Quick Actions Styling === */
+.quick-action {
+    display: none; /* Hide specific links */
+  }
+  
+  .quick-action[href="/user/book-driver"],
+  .quick-action[href="/user/wallet"] {
+    display: none; /* Hides "Book a Driver" and "Manage Wallet" */
+  }
+  
+  /* === Support Button Styling === */
+  .support-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(145deg, #6a1b9a, #8e24aa); /* Purple gradient */
+    color: white;
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease-in-out;
+    z-index: 1000; /* Ensure visibility */
+  }
+  
+  .support-button:hover {
+    background: linear-gradient(145deg, #5e35b1, #7b1fa2);
+    transform: scale(1.05);
+  }
+  
+  .support-button:active {
+    transform: scale(0.95);
+    box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.3);
+  }
+  
