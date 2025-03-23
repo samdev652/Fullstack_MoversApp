@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
 
 const DriverWallet = () => {
   const { user } = useAuth();
@@ -13,6 +12,79 @@ const DriverWallet = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
 
+  // Dummy data for completed orders
+  const dummyCompletedOrders = [
+    {
+      booking_id: 5001,
+      user_id: 123,
+      pickup_location: "123 Main St, Downtown",
+      dropoff_location: "456 Park Ave, Uptown",
+      status: "completed",
+      created_at: "2025-03-20T14:30:00Z",
+      price: 24.50,
+      distance: 5.8
+    },
+    {
+      booking_id: 5005,
+      user_id: 127,
+      pickup_location: "444 Willow St, College Town",
+      dropoff_location: "222 Aspen Ct, Business District",
+      status: "completed",
+      created_at: "2025-03-15T13:20:00Z",
+      price: 27.80,
+      distance: 6.3
+    },
+    {
+      booking_id: 5006,
+      user_id: 128,
+      pickup_location: "333 Spruce Dr, Shopping Mall",
+      dropoff_location: "111 Fir St, Hospital",
+      status: "completed",
+      created_at: "2025-03-10T08:45:00Z",
+      price: 15.90,
+      distance: 2.7
+    }
+  ];
+
+  // Dummy data for transaction history
+  const dummyTransactions = [
+    { 
+      id: 1, 
+      type: 'withdraw', 
+      amount: 120, 
+      date: '2025-03-20T15:30:00Z', 
+      status: 'completed' 
+    },
+    { 
+      id: 2, 
+      type: 'earning', 
+      amount: 45, 
+      date: '2025-03-19T12:15:00Z', 
+      status: 'completed' 
+    },
+    { 
+      id: 3, 
+      type: 'withdraw', 
+      amount: 75, 
+      date: '2025-03-15T09:45:00Z', 
+      status: 'completed' 
+    },
+    { 
+      id: 4, 
+      type: 'earning', 
+      amount: 32.20, 
+      date: '2025-03-10T16:30:00Z', 
+      status: 'completed' 
+    },
+    { 
+      id: 5, 
+      type: 'earning', 
+      amount: 18.75, 
+      date: '2025-03-05T14:00:00Z', 
+      status: 'completed' 
+    }
+  ];
+
   useEffect(() => {
     fetchWalletData();
     fetchTransactionHistory();
@@ -20,67 +92,37 @@ const DriverWallet = () => {
 
   const fetchWalletData = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/driver/order-history/${user.id}`);
-      const data = response.data;
+      setIsLoading(true);
+      // Simulate network delay
+      setTimeout(() => {
+        const completedOrders = dummyCompletedOrders;
+        const totalEarnings = completedOrders.reduce((sum, order) => sum + order.price * 0.8, 0);
 
-      const completedOrders = data.orders.filter((order) => order.status === 'completed');
-      const totalEarnings = completedOrders.reduce((sum, order) => sum + order.price * 0.8, 0);
-
-      const pendingPayments = data.orders.filter((order) => order.status === 'completed');
-
-      setWalletData({
-        earnings: totalEarnings,
-        pendingPayments,
-      });
+        setWalletData({
+          earnings: totalEarnings,
+          pendingPayments: completedOrders.slice(0, 2), // Use first 2 orders as "pending"
+        });
+        setIsLoading(false);
+      }, 1000);
     } catch (error) {
       console.error('Error fetching wallet data:', error);
       toast.error('Failed to load wallet data');
+      setIsLoading(false);
     }
   };
 
   const fetchTransactionHistory = async () => {
     try {
-      const response = await axios.get(
-        'https://sandbox.intasend.com/api/v1/transaction/list/',
-        {
-          headers: {
-            'Authorization': `Bearer ${process.env.REACT_APP_INTASEND_SECRET_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          params: {
-            customer_id: user.id
-          }
-        }
-      );
-      
-      const formattedTransactions = response.data.results.map(transaction => ({
-        id: transaction.id,
-        type: transaction.transaction_type === 'PAYMENT_IN' ? 'earning' : 'withdraw',
-        amount: transaction.amount,
-        date: transaction.created_at,
-        status: transaction.state
-      }));
-      
-      setTransactions(formattedTransactions);
-      
-      if (!formattedTransactions.length) {
-        const mockTransactions = [
-          { id: 1, type: 'withdraw', amount: 120, date: '2025-02-20', status: 'completed' },
-          { id: 2, type: 'earning', amount: 45, date: '2025-02-19', status: 'completed' },
-          { id: 3, type: 'withdraw', amount: 75, date: '2025-02-15', status: 'completed' },
-        ];
-        setTransactions(mockTransactions);
-      }
+      setIsLoading(true);
+      // Simulate network delay
+      setTimeout(() => {
+        setTransactions(dummyTransactions);
+        setIsLoading(false);
+      }, 1000);
     } catch (error) {
       console.error('Error fetching transaction history:', error);
       toast.error('Failed to load transaction history');
-      
-      const mockTransactions = [
-        { id: 1, type: 'withdraw', amount: 120, date: '2025-02-20', status: 'completed' },
-        { id: 2, type: 'earning', amount: 45, date: '2025-02-19', status: 'completed' },
-        { id: 3, type: 'withdraw', amount: 75, date: '2025-02-15', status: 'completed' },
-      ];
-      setTransactions(mockTransactions);
+      setIsLoading(false);
     }
   };
 
@@ -99,74 +141,29 @@ const DriverWallet = () => {
 
     setIsLoading(true);
     try {
-      const payload = {
-        public_key: process.env.REACT_APP_INTASEND_PUBLIC_KEY,
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Create a new transaction record
+      const newTransaction = {
+        id: Date.now(),
+        type: 'withdraw',
         amount: parseFloat(withdrawAmount),
-        phone_number: user.phone_number,
-        currency: 'KES',
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        narrative: 'Withdrawal from driver wallet',
-        callback_url: `${window.location.origin}/api/callback/withdrawal/${user.id}`,
+        date: new Date().toISOString(),
+        status: 'completed'
       };
-
-      const response = await axios.post(
-        'https://sandbox.intasend.com/api/v1/payment/mpesa-stk-push/',
-        payload,
-        {
-          headers: {
-            'Authorization': `Bearer ${process.env.REACT_APP_INTASEND_SECRET_KEY}`,
-            'Content-Type': 'application/json'
-          },
-        }
-      );
-
-      if (response.data.success) {
-        const checkoutId = response.data.checkout_id;
-        
-        const newTransaction = {
-          id: Date.now(),
-          type: 'withdraw',
-          amount: parseFloat(withdrawAmount),
-          date: new Date().toISOString(),
-          status: 'pending',
-          checkout_id: checkoutId
-        };
-        
-        setTransactions([newTransaction, ...transactions]);
-        
-        toast.success('Withdrawal initiated successfully! Please complete the payment on your phone.');
-        setWithdrawAmount('');
-        
-        const checkTransactionStatus = async () => {
-          try {
-            const statusResponse = await axios.get(
-              `https://sandbox.intasend.com/api/v1/payment/status/${checkoutId}/`,
-              {
-                headers: {
-                  'Authorization': `Bearer ${process.env.REACT_APP_INTASEND_SECRET_KEY}`,
-                  'Content-Type': 'application/json'
-                }
-              }
-            );
-            
-            if (statusResponse.data.status === 'COMPLETE') {
-              toast.success('Withdrawal completed successfully!');
-              fetchWalletData();
-              fetchTransactionHistory();
-            } else if (statusResponse.data.status === 'FAILED') {
-              toast.error('Withdrawal failed. Please try again.');
-            }
-          } catch (error) {
-            console.error('Error checking transaction status:', error);
-          }
-        };
-        
-        setTimeout(checkTransactionStatus, 30000);
-      } else {
-        toast.error('Failed to initiate withdrawal: ' + response.data.message);
-      }
+      
+      // Add the new transaction to the history
+      setTransactions([newTransaction, ...transactions]);
+      
+      // Update wallet balance
+      setWalletData({
+        ...walletData,
+        earnings: walletData.earnings - parseFloat(withdrawAmount)
+      });
+      
+      toast.success('Withdrawal completed successfully!');
+      setWithdrawAmount('');
     } catch (error) {
       console.error('Error processing withdrawal:', error);
       toast.error('Withdrawal failed. Please try again.');
@@ -174,6 +171,14 @@ const DriverWallet = () => {
       setIsLoading(false);
     }
   };
+
+  if (isLoading && !transactions.length && !walletData.pendingPayments.length) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

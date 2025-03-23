@@ -1,72 +1,92 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-import axios from 'axios';
 
 const DriverNotifications = () => {
-  const { user } = useAuth();
+  // Dummy user data (simulating auth context)
+  const user = { id: 'driver123', name: 'John Driver' };
+  
+  // Initial dummy notifications data
+  const initialNotifications = [
+    {
+      id: '1',
+      title: 'New Ride Request',
+      message: 'You have a new ride request from Downtown to Airport.',
+      created_at: '2025-03-22T10:30:00',
+      is_read: false
+    },
+    {
+      id: '2',
+      title: 'Bonus Available',
+      message: 'Complete 10 rides this weekend to earn a $50 bonus!',
+      created_at: '2025-03-21T15:45:00',
+      is_read: false
+    },
+    {
+      id: '3',
+      title: 'Fare Adjustment',
+      message: 'Your fare for ride #38291 has been adjusted due to a toll fee.',
+      created_at: '2025-03-20T09:15:00',
+      is_read: true
+    },
+    {
+      id: '4',
+      title: 'Customer Rating',
+      message: 'You received a 5-star rating from your last customer!',
+      created_at: '2025-03-19T18:20:00',
+      is_read: true
+    },
+    {
+      id: '5',
+      title: 'System Maintenance',
+      message: 'The app will be undergoing maintenance tonight from 2AM to 4AM.',
+      created_at: '2025-03-18T14:10:00',
+      is_read: false
+    }
+  ];
+  
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    fetchNotifications();
-  }, [user.id]);
+    // Simulate API loading delay
+    const timer = setTimeout(() => {
+      setNotifications(initialNotifications);
+      setIsLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
-  const fetchNotifications = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/driver/notifications/${user.id}`);
-      setNotifications(response.data.notifications);
+  const fetchNotifications = () => {
+    // Simulate refresh
+    setIsLoading(true);
+    setTimeout(() => {
+      setNotifications(initialNotifications);
       setIsLoading(false);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      toast.error('Failed to load notifications');
-      setIsLoading(false);
-    }
+      toast.success('Notifications refreshed');
+    }, 800);
   };
   
-  const handleMarkAsRead = async (notificationId) => {
-    try {
-      await axios.post(`http://localhost:5000/api/notifications/mark-read/${notificationId}`);
-      
-      // Update the notifications list to mark this one as read
-      setNotifications(
-        notifications.map((notification) => 
-          notification.id === notificationId 
-            ? { ...notification, is_read: true } 
-            : notification
-        )
-      );
-      
-      toast.success('Notification marked as read');
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-      toast.error('Failed to update notification');
-    }
+  const handleMarkAsRead = (notificationId) => {
+    // Update the notifications list to mark this one as read
+    setNotifications(
+      notifications.map((notification) => 
+        notification.id === notificationId 
+          ? { ...notification, is_read: true } 
+          : notification
+      )
+    );
+    
+    toast.success('Notification marked as read');
   };
   
-  const handleMarkAllAsRead = async () => {
-    try {
-      // Create a list of promises for each unread notification
-      const markPromises = notifications
-        .filter(notification => !notification.is_read)
-        .map(notification => 
-          axios.post(`http://localhost:5000/api/notifications/mark-read/${notification.id}`)
-        );
-      
-      // Execute all promises in parallel
-      await Promise.all(markPromises);
-      
-      // Update all notifications as read in the state
-      setNotifications(
-        notifications.map((notification) => ({ ...notification, is_read: true }))
-      );
-      
-      toast.success('All notifications marked as read');
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-      toast.error('Failed to update notifications');
-    }
+  const handleMarkAllAsRead = () => {
+    // Update all notifications as read in the state
+    setNotifications(
+      notifications.map((notification) => ({ ...notification, is_read: true }))
+    );
+    
+    toast.success('All notifications marked as read');
   };
   
   const formatDate = (dateString) => {
@@ -85,7 +105,7 @@ const DriverNotifications = () => {
   const unreadCount = notifications.filter(notification => !notification.is_read).length;
   
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Notifications</h1>
         
@@ -126,7 +146,7 @@ const DriverNotifications = () => {
           {notifications.map((notification) => (
             <div 
               key={notification.id} 
-              className={`bg-white p-4              rounded-lg shadow-md flex justify-between items-center ${notification.is_read ? 'opacity-70' : 'bg-blue-50'}`}
+              className={`bg-white p-4 rounded-lg shadow-md flex justify-between items-center ${notification.is_read ? 'opacity-70' : 'bg-blue-50'}`}
             >
               <div>
                 <h3 className="text-lg font-semibold">{notification.title}</h3>

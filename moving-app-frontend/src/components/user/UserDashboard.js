@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
-
-axios.defaults.baseURL = 'http://localhost:5000';
+import { Navigate } from 'react-router-dom';
 
 const UserDashboard = () => {
-  const { currentUser } = useAuth();
+  // Dummy user data
+  const currentUser = { id: 'user456', email: 'sarah.parker@example.com' };
+  
+  // State variables
   const [recentBookings, setRecentBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -15,127 +14,317 @@ const UserDashboard = () => {
     cancelledBookings: 0
   });
 
+  // Styles
+  const styles = {
+    container: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      backgroundColor: '#f8f9fa',
+      padding: '30px 20px',
+      fontFamily: 'Arial, sans-serif'
+    },
+    welcomeTitle: {
+      fontSize: '28px',
+      fontWeight: 'bold',
+      color: '#2c3e50',
+      marginBottom: '30px',
+      textAlign: 'center'
+    },
+    card: {
+      backgroundColor: '#ffffff',
+      borderRadius: '10px',
+      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+      padding: '25px',
+      width: '100%',
+      maxWidth: '800px',
+      marginBottom: '30px'
+    },
+    cardTitle: {
+      fontSize: '22px',
+      fontWeight: 'bold',
+      color: '#2c3e50',
+      marginBottom: '20px',
+      textAlign: 'center'
+    },
+    statsGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+      gap: '20px'
+    },
+    statBox: {
+      padding: '20px',
+      borderRadius: '8px',
+      textAlign: 'center'
+    },
+    activeBox: {
+      backgroundColor: '#e3f2fd'
+    },
+    completedBox: {
+      backgroundColor: '#e8f5e9'
+    },
+    cancelledBox: {
+      backgroundColor: '#ffebee'
+    },
+    statLabel: {
+      fontSize: '16px',
+      fontWeight: '500',
+      marginBottom: '10px',
+      color: '#34495e'
+    },
+    activeValue: {
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: '#1976d2'
+    },
+    completedValue: {
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: '#388e3c'
+    },
+    cancelledValue: {
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: '#d32f2f'
+    },
+    headerContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginBottom: '20px'
+    },
+    viewAllLink: {
+      color: '#1976d2',
+      textDecoration: 'none',
+      fontSize: '14px',
+      marginTop: '5px'
+    },
+    bookingsList: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '20px'
+    },
+    bookingItem: {
+      borderBottom: '1px solid #e0e0e0',
+      paddingBottom: '20px'
+    },
+    bookingHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '10px',
+      flexWrap: 'wrap'
+    },
+    bookingId: {
+      fontWeight: 'bold',
+      color: '#2c3e50',
+      fontSize: '16px'
+    },
+    bookingDate: {
+      color: '#7f8c8d',
+      fontSize: '14px'
+    },
+    locationInfo: {
+      margin: '10px 0',
+      lineHeight: '1.5'
+    },
+    locationLabel: {
+      fontWeight: 'bold',
+      color: '#34495e'
+    },
+    statusBadge: {
+      display: 'inline-block',
+      padding: '6px 12px',
+      borderRadius: '20px',
+      fontSize: '12px',
+      fontWeight: 'bold',
+      marginTop: '10px'
+    },
+    badgeCompleted: {
+      backgroundColor: '#e8f5e9',
+      color: '#388e3c'
+    },
+    badgeCancelled: {
+      backgroundColor: '#ffebee',
+      color: '#d32f2f'
+    },
+    badgeAccepted: {
+      backgroundColor: '#e3f2fd',
+      color: '#1976d2'
+    },
+    badgePending: {
+      backgroundColor: '#fff8e1',
+      color: '#ffa000'
+    },
+    trackLink: {
+      color: '#1976d2',
+      textDecoration: 'none',
+      marginTop: '10px',
+      display: 'inline-block',
+      fontWeight: '500'
+    },
+    emptyMessage: {
+      color: '#7f8c8d',
+      fontSize: '16px',
+      textAlign: 'center',
+      padding: '20px'
+    },
+    supportButton: {
+      backgroundColor: '#7e57c2',
+      color: 'white',
+      padding: '12px 24px',
+      borderRadius: '8px',
+      border: 'none',
+      fontSize: '16px',
+      fontWeight: 'bold',
+      cursor: 'pointer',
+      transition: 'background-color 0.3s'
+    },
+    loadingText: {
+      color: '#7f8c8d',
+      fontSize: '16px',
+      textAlign: 'center',
+      padding: '20px'
+    }
+  };
+
+  // Dummy bookings data
+  const dummyBookings = [
+    {
+      booking_id: "BK-10045",
+      created_at: "2025-03-20T14:30:00",
+      pickup_location: "123 Main Street",
+      dropoff_location: "456 Park Avenue",
+      status: "completed",
+      driver_name: "Alex Johnson",
+      fare: 24.50
+    },
+    {
+      booking_id: "BK-10052",
+      created_at: "2025-03-22T09:15:00",
+      pickup_location: "Grand Central Station",
+      dropoff_location: "JFK Airport Terminal 4",
+      status: "accepted",
+      driver_name: "Emma Williams",
+      fare: 67.75
+    },
+    {
+      booking_id: "BK-10060",
+      created_at: "2025-03-23T11:45:00",
+      pickup_location: "Brooklyn Heights",
+      dropoff_location: "Manhattan Financial District",
+      status: "pending",
+      fare: 32.25
+    }
+  ];
+
+  // Simulate API call
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setRecentBookings(dummyBookings);
+      setStats({
+        activeBookings: 2,
+        completedBookings: 15,
+        cancelledBookings: 3
+      });
+      setLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Handle support navigation
+  const navigateToSupport = () => {
+    alert("Navigating to support page...");
+  };
+
+  // Redirect if not logged in
   if (!currentUser) {
     return <Navigate to="/login" />;
   }
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`http://127.0.0.1:5000/api/user/order-history/${currentUser.id}`);
-        const orders = response.data.orders;
-
-        const sortedOrders = [...orders].sort((a, b) =>
-          new Date(b.created_at) - new Date(a.created_at)
-        );
-        setRecentBookings(sortedOrders.slice(0, 3));
-
-        const activeCount = orders.filter(order =>
-          order.status === 'pending' || order.status === 'accepted'
-        ).length;
-        const completedCount = orders.filter(order =>
-          order.status === 'completed'
-        ).length;
-        const cancelledCount = orders.filter(order =>
-          order.status === 'cancelled'
-        ).length;
-
-        setStats({
-          activeBookings: activeCount,
-          completedBookings: completedCount,
-          cancelledBookings: cancelledCount
-        });
-
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [currentUser.id]);
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-8 px-4 space-y-6">
-      <h1 className="text-2xl font-bold text-center">Welcome, {currentUser.email}!</h1>
+    <div style={styles.container}>
+      <h1 style={styles.welcomeTitle}>Welcome, {currentUser.email}!</h1>
       
       {/* Statistics */}
-      <div className="bg-white rounded-lg shadow p-6 w-full max-w-3xl text-center">
-        <h2 className="text-xl font-semibold mb-4">Your Statistics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-100 p-4 rounded-md">
-            <p className="text-lg font-medium">Active Bookings</p>
-            <p className="text-2xl font-bold text-blue-600">{stats.activeBookings}</p>
+      <div style={styles.card}>
+        <h2 style={styles.cardTitle}>Your Statistics</h2>
+        <div style={styles.statsGrid}>
+          <div style={{...styles.statBox, ...styles.activeBox}}>
+            <p style={styles.statLabel}>Active Bookings</p>
+            <p style={styles.activeValue}>{stats.activeBookings}</p>
           </div>
-          <div className="bg-green-100 p-4 rounded-md">
-            <p className="text-lg font-medium">Completed Trips</p>
-            <p className="text-2xl font-bold text-green-600">{stats.completedBookings}</p>
+          <div style={{...styles.statBox, ...styles.completedBox}}>
+            <p style={styles.statLabel}>Completed Trips</p>
+            <p style={styles.completedValue}>{stats.completedBookings}</p>
           </div>
-          <div className="bg-red-100 p-4 rounded-md">
-            <p className="text-lg font-medium">Cancelled Bookings</p>
-            <p className="text-2xl font-bold text-red-600">{stats.cancelledBookings}</p>
+          <div style={{...styles.statBox, ...styles.cancelledBox}}>
+            <p style={styles.statLabel}>Cancelled Bookings</p>
+            <p style={styles.cancelledValue}>{stats.cancelledBookings}</p>
           </div>
         </div>
       </div>
 
       {/* Recent Bookings */}
-      <div className="bg-white rounded-lg shadow p-6 w-full max-w-3xl text-center">
-        <div className="flex flex-col items-center mb-4">
-          <h2 className="text-xl font-semibold mb-2">Recent Bookings</h2>
-          <Link to="/user/orders" className="text-blue-600 hover:text-blue-800">
-            View All
-          </Link>
+      <div style={styles.card}>
+        <div style={styles.headerContainer}>
+          <h2 style={styles.cardTitle}>Recent Bookings</h2>
+          <a href="/user/orders" style={styles.viewAllLink}>View All</a>
         </div>
         
         {loading ? (
-          <p>Loading recent bookings...</p>
+          <p style={styles.loadingText}>Loading recent bookings...</p>
         ) : recentBookings.length > 0 ? (
-          <div className="space-y-4">
+          <div style={styles.bookingsList}>
             {recentBookings.map((booking) => (
-              <div key={booking.booking_id} className="border-b pb-4">
-                <div className="flex flex-col items-center">
-                  <p className="font-medium">Booking #{booking.booking_id}</p>
-                  <p className="text-sm text-gray-600">
+              <div key={booking.booking_id} style={styles.bookingItem}>
+                <div style={styles.bookingHeader}>
+                  <p style={styles.bookingId}>Booking #{booking.booking_id}</p>
+                  <p style={styles.bookingDate}>
                     {new Date(booking.created_at).toLocaleDateString()}
                   </p>
-                  <p className="mt-1">
-                    <span className="font-medium">From:</span> {booking.pickup_location}
+                </div>
+                <div style={styles.locationInfo}>
+                  <p>
+                    <span style={styles.locationLabel}>From:</span> {booking.pickup_location}
                   </p>
                   <p>
-                    <span className="font-medium">To:</span> {booking.dropoff_location}
+                    <span style={styles.locationLabel}>To:</span> {booking.dropoff_location}
                   </p>
-                  <div className="mt-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      booking.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                      booking.status === 'accepted' ? 'bg-blue-100 text-blue-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                    </span>
-                  </div>
-                  {booking.status === 'accepted' && (
-                    <Link 
-                      to={`/user/track/${booking.booking_id}`}
-                      className="mt-2 text-blue-600 hover:text-blue-800"
-                    >
-                      Track Driver
-                    </Link>
-                  )}
                 </div>
+                <div>
+                  <span style={{
+                    ...styles.statusBadge,
+                    ...(booking.status === 'completed' ? styles.badgeCompleted :
+                        booking.status === 'cancelled' ? styles.badgeCancelled :
+                        booking.status === 'accepted' ? styles.badgeAccepted :
+                        styles.badgePending)
+                  }}>
+                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                  </span>
+                </div>
+                {booking.status === 'accepted' && (
+                  <div>
+                    <a href={`/user/track/${booking.booking_id}`} style={styles.trackLink}>
+                      Track Driver
+                    </a>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-600">You don't have any bookings yet.</p>
+          <p style={styles.emptyMessage}>You don't have any bookings yet.</p>
         )}
       </div>
 
-      {/* Centered Contact Support Button */}
+      {/* Contact Support Button */}
       <button 
-        className="bg-purple-600 text-white py-3 px-8 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 mt-6"
-        onClick={() => window.location.href = "/user/support"}
+        style={styles.supportButton}
+        onClick={navigateToSupport}
       >
         Contact Support
       </button>

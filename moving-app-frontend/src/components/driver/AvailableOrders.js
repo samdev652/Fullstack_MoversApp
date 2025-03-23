@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-import axios from 'axios';
 
 const AvailableOrders = () => {
   const { user } = useAuth();
@@ -9,31 +8,83 @@ const AvailableOrders = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAccepting, setIsAccepting] = useState(false);
 
+  // Dummy data for available orders
+  const dummyOrders = [
+    {
+      booking_id: 1001,
+      pickup_location: "123 Main St, Downtown",
+      dropoff_location: "456 Park Ave, Uptown",
+      distance: 5.8,
+      price: 24.50,
+      status: "pending"
+    },
+    {
+      booking_id: 1002,
+      pickup_location: "789 Oak Dr, Westside",
+      dropoff_location: "321 Pine St, Eastside",
+      distance: 3.2,
+      price: 18.75,
+      status: "pending"
+    },
+    {
+      booking_id: 1003,
+      pickup_location: "555 Maple Rd, Northend",
+      dropoff_location: "777 Elm Blvd, Southside",
+      distance: 7.5,
+      price: 32.20,
+      status: "pending"
+    },
+    {
+      booking_id: 1004,
+      pickup_location: "888 Cedar Ln, Riverside",
+      dropoff_location: "999 Birch Ave, Lakefront",
+      distance: 4.6,
+      price: 21.30,
+      status: "pending"
+    },
+    {
+      booking_id: 1005,
+      pickup_location: "444 Willow St, College Town",
+      dropoff_location: "222 Aspen Ct, Business District",
+      distance: 6.3,
+      price: 27.80,
+      status: "pending"
+    }
+  ];
+
   useEffect(() => {
+    // Simulate API call with dummy data
+    const fetchOrders = () => {
+      setIsLoading(true);
+      // Simulate network delay
+      setTimeout(() => {
+        setOrders(dummyOrders);
+        setIsLoading(false);
+      }, 1000);
+    };
+
     fetchOrders();
   }, []);
 
-  const fetchOrders = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.get('http://localhost:5000/api/driver/available-orders');
-      setOrders(response.data.orders);
+  const fetchOrders = () => {
+    setIsLoading(true);
+    // Simulate network delay
+    setTimeout(() => {
+      setOrders(dummyOrders);
       setIsLoading(false);
-    } catch (error) {
-      console.error('Error fetching available orders:', error);
-      toast.error('Failed to load available orders');
-      setIsLoading(false);
-    }
+    }, 1000);
   };
 
   const handleAcceptOrder = async (bookingId) => {
     try {
       setIsAccepting(true);
-      await axios.post(`http://localhost:5000/api/driver/accept-order/${bookingId}`);
-      toast.success('Order accepted successfully!');
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Remove the accepted order from the list
       setOrders(orders.filter(order => order.booking_id !== bookingId));
+      toast.success('Order accepted successfully!');
       setIsAccepting(false);
     } catch (error) {
       console.error('Error accepting order:', error);

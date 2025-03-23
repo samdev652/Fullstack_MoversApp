@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-import axios from 'axios';
 
 const DriverOrderHistory = () => {
   const { user } = useAuth();
@@ -9,16 +8,82 @@ const DriverOrderHistory = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, completed, accepted, cancelled
   
+  // Dummy data for order history
+  const dummyOrders = [
+    {
+      booking_id: 5001,
+      user_id: 123,
+      pickup_location: "123 Main St, Downtown",
+      dropoff_location: "456 Park Ave, Uptown",
+      status: "completed",
+      created_at: "2025-03-20T14:30:00Z",
+      price: 24.50,
+      distance: 5.8
+    },
+    {
+      booking_id: 5002,
+      user_id: 124,
+      pickup_location: "789 Oak Dr, Westside",
+      dropoff_location: "321 Pine St, Eastside",
+      status: "accepted",
+      created_at: "2025-03-22T09:15:00Z",
+      price: 18.75,
+      distance: 3.2
+    },
+    {
+      booking_id: 5003,
+      user_id: 125,
+      pickup_location: "555 Maple Rd, Northend",
+      dropoff_location: "777 Elm Blvd, Southside",
+      status: "cancelled",
+      created_at: "2025-03-18T17:45:00Z",
+      price: 32.20,
+      distance: 7.5
+    },
+    {
+      booking_id: 5004,
+      user_id: 126,
+      pickup_location: "888 Cedar Ln, Riverside",
+      dropoff_location: "999 Birch Ave, Lakefront",
+      status: "accepted",
+      created_at: "2025-03-23T11:30:00Z",
+      price: 21.30,
+      distance: 4.6
+    },
+    {
+      booking_id: 5005,
+      user_id: 127,
+      pickup_location: "444 Willow St, College Town",
+      dropoff_location: "222 Aspen Ct, Business District",
+      status: "completed",
+      created_at: "2025-03-15T13:20:00Z",
+      price: 27.80,
+      distance: 6.3
+    },
+    {
+      booking_id: 5006,
+      user_id: 128,
+      pickup_location: "333 Spruce Dr, Shopping Mall",
+      dropoff_location: "111 Fir St, Hospital",
+      status: "completed",
+      created_at: "2025-03-10T08:45:00Z",
+      price: 15.90,
+      distance: 2.7
+    }
+  ];
+  
   useEffect(() => {
     fetchOrderHistory();
-  }, [user.id]);
+  }, []);
   
   const fetchOrderHistory = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/driver/order-history/${user.id}`);
-      setOrders(response.data.orders);
-      setIsLoading(false);
+      // Simulate network delay
+      setTimeout(() => {
+        setOrders(dummyOrders);
+        setIsLoading(false);
+      }, 1000);
     } catch (error) {
       console.error('Error fetching order history:', error);
       toast.error('Failed to load order history');
@@ -28,10 +93,17 @@ const DriverOrderHistory = () => {
   
   const handleCompleteOrder = async (bookingId) => {
     try {
-      // This endpoint doesn't exist in your backend, but would need to be added
-      await axios.post(`http://localhost:5000/api/driver/complete-order/${bookingId}`);
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update the order status in the local state
+      setOrders(orders.map(order => 
+        order.booking_id === bookingId 
+          ? {...order, status: 'completed'} 
+          : order
+      ));
+      
       toast.success('Order marked as completed');
-      fetchOrderHistory(); // Refresh the order list
     } catch (error) {
       console.error('Error completing order:', error);
       toast.error('Failed to complete order');
@@ -40,9 +112,17 @@ const DriverOrderHistory = () => {
   
   const handleCancelOrder = async (bookingId) => {
     try {
-      await axios.post(`http://localhost:5000/api/driver/cancel-order/${bookingId}`);
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update the order status in the local state
+      setOrders(orders.map(order => 
+        order.booking_id === bookingId 
+          ? {...order, status: 'cancelled'} 
+          : order
+      ));
+      
       toast.success('Order cancelled successfully');
-      fetchOrderHistory(); // Refresh the order list
     } catch (error) {
       console.error('Error cancelling order:', error);
       toast.error('Failed to cancel order');
