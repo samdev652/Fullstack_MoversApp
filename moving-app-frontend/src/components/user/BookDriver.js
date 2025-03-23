@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import './BookDriver.css';
 
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -23,7 +22,8 @@ const KENYAN_DRIVERS = [
     vehicle_type: "Sedan",
     ratings: 4.8,
     completed_orders: 237,
-    price: 1500
+    price: 1500,
+    image: "https://randomuser.me/api/portraits/men/32.jpg"
   },
   {
     driver_id: 2,
@@ -31,7 +31,8 @@ const KENYAN_DRIVERS = [
     vehicle_type: "SUV",
     ratings: 4.9,
     completed_orders: 412,
-    price: 1850
+    price: 1850,
+    image: "https://randomuser.me/api/portraits/women/44.jpg"
   },
   {
     driver_id: 3,
@@ -39,7 +40,8 @@ const KENYAN_DRIVERS = [
     vehicle_type: "Luxury",
     ratings: 4.7,
     completed_orders: 187,
-    price: 2200
+    price: 2200,
+    image: "https://randomuser.me/api/portraits/men/75.jpg"
   },
   {
     driver_id: 4,
@@ -47,7 +49,8 @@ const KENYAN_DRIVERS = [
     vehicle_type: "Economy",
     ratings: 4.6,
     completed_orders: 153,
-    price: 1200
+    price: 1200,
+    image: "https://randomuser.me/api/portraits/women/65.jpg"
   },
   {
     driver_id: 5,
@@ -55,7 +58,8 @@ const KENYAN_DRIVERS = [
     vehicle_type: "Boda Boda",
     ratings: 4.5,
     completed_orders: 292,
-    price: 500
+    price: 500,
+    image: "https://randomuser.me/api/portraits/men/42.jpg"
   }
 ];
 
@@ -63,7 +67,121 @@ const KENYAN_DRIVERS = [
 const KENYAN_PROMO_CODES = {
   "KARIBU10": 0.1,   // 10% off
   "SAFARI20": 0.2,   // 20% off
-  "NAIROBI25": 0.25  // 25% off
+  "NAIROBI25": 0.25, // 25% off
+  "MADARAKA50": 0.5, // 50% off for Madaraka Day
+  "UHURU30": 0.3     // 30% off for Independence Day
+};
+
+// Kenyan popular locations for suggestions
+const POPULAR_LOCATIONS = [
+  "CBD", "Westlands", "Kilimani", "Karen", "JKIA", 
+  "Lavington", "Ngong", "Thika", "Kiambu", "Upper Hill",
+  "Eastleigh", "Gigiri", "Parklands", "South B", "South C"
+];
+
+const containerStyles = {
+  maxWidth: '900px',
+  margin: '0 auto',
+  padding: '20px',
+  fontFamily: 'Arial, sans-serif'
+};
+
+const headingStyles = {
+  fontSize: '28px',
+  fontWeight: 'bold',
+  marginBottom: '20px',
+  color: '#333',
+  borderBottom: '2px solid #e67e22',
+  paddingBottom: '10px'
+};
+
+const cardStyles = {
+  backgroundColor: '#fff',
+  borderRadius: '8px',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+  padding: '25px',
+  marginBottom: '25px'
+};
+
+const stepIndicatorContainerStyles = {
+  display: 'flex',
+  marginBottom: '30px'
+};
+
+const formGroupStyles = {
+  marginBottom: '20px'
+};
+
+const labelStyles = {
+  display: 'block',
+  marginBottom: '8px',
+  fontWeight: '600',
+  fontSize: '16px',
+  color: '#444'
+};
+
+const inputStyles = {
+  width: '100%',
+  padding: '12px 15px',
+  borderRadius: '6px',
+  border: '1px solid #ddd',
+  fontSize: '16px',
+  boxSizing: 'border-box',
+  transition: 'border-color 0.3s ease',
+  backgroundColor: '#f9f9f9'
+};
+
+const buttonPrimaryStyles = {
+  backgroundColor: '#e67e22', // Kenyan-inspired orange
+  color: 'white',
+  padding: '12px 20px',
+  border: 'none',
+  borderRadius: '6px',
+  fontSize: '16px',
+  cursor: 'pointer',
+  fontWeight: 'bold',
+  width: '100%',
+  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+  transition: 'all 0.3s ease'
+};
+
+const buttonSecondaryStyles = {
+  backgroundColor: 'transparent',
+  color: '#e67e22',
+  padding: '10px 16px',
+  border: '1px solid #e67e22',
+  borderRadius: '6px',
+  fontSize: '14px',
+  cursor: 'pointer',
+  fontWeight: '600',
+  transition: 'all 0.3s ease'
+};
+
+const driverCardStyles = {
+  border: '1px solid #ddd',
+  borderRadius: '8px',
+  padding: '16px',
+  marginBottom: '15px',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center'
+};
+
+const mapContainerStyles = {
+  height: '300px',
+  borderRadius: '8px',
+  overflow: 'hidden',
+  border: '1px solid #ddd',
+  marginBottom: '20px'
+};
+
+const hintTextStyles = {
+  fontSize: '12px',
+  color: '#777',
+  marginTop: '5px',
+  fontStyle: 'italic'
 };
 
 const BookDriver = () => {
@@ -84,6 +202,10 @@ const BookDriver = () => {
   });
   const [mapCenter, setMapCenter] = useState([-1.2921, 36.8219]); // Default center on Nairobi
   const [mapZoom, setMapZoom] = useState(13);
+  const [pickupSuggestions, setPickupSuggestions] = useState([]);
+  const [dropoffSuggestions, setDropoffSuggestions] = useState([]);
+  const [showPickupSuggestions, setShowPickupSuggestions] = useState(false);
+  const [showDropoffSuggestions, setShowDropoffSuggestions] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -91,6 +213,37 @@ const BookDriver = () => {
       ...formData,
       [name]: value
     });
+
+    // Show location suggestions
+    if (name === 'pickup_location' && value.length > 1) {
+      const filteredSuggestions = POPULAR_LOCATIONS.filter(loc => 
+        loc.toLowerCase().includes(value.toLowerCase())
+      );
+      setPickupSuggestions(filteredSuggestions);
+      setShowPickupSuggestions(true);
+    } else if (name === 'dropoff_location' && value.length > 1) {
+      const filteredSuggestions = POPULAR_LOCATIONS.filter(loc => 
+        loc.toLowerCase().includes(value.toLowerCase())
+      );
+      setDropoffSuggestions(filteredSuggestions);
+      setShowDropoffSuggestions(true);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion, locationType) => {
+    if (locationType === 'pickup') {
+      setFormData({
+        ...formData,
+        pickup_location: suggestion
+      });
+      setShowPickupSuggestions(false);
+    } else {
+      setFormData({
+        ...formData,
+        dropoff_location: suggestion
+      });
+      setShowDropoffSuggestions(false);
+    }
   };
 
   // Simulate geocoding with predefined responses for Kenyan locations
@@ -115,7 +268,14 @@ const BookDriver = () => {
       'lavington': { lat: -1.2802, lon: 36.7645 },
       'ngong': { lat: -1.3611, lon: 36.6550 },
       'jkia': { lat: -1.3236, lon: 36.9260 },
-      'nyali': { lat: -4.0210, lon: 39.7200 }
+      'nyali': { lat: -4.0210, lon: 39.7200 },
+      'kiambu': { lat: -1.1711, lon: 36.8255 },
+      'upper hill': { lat: -1.2974, lon: 36.8094 },
+      'eastleigh': { lat: -1.2728, lon: 36.8502 },
+      'gigiri': { lat: -1.2329, lon: 36.8050 },
+      'parklands': { lat: -1.2654, lon: 36.8107 },
+      'south b': { lat: -1.3105, lon: 36.8359 },
+      'south c': { lat: -1.3233, lon: 36.8243 }
     };
     
     // Try to match the address to our map (case insensitive)
@@ -169,7 +329,7 @@ const BookDriver = () => {
       const drivers = KENYAN_DRIVERS.map(driver => ({
         ...driver,
         // Add some variation to driver prices
-        price: basePrice * (0.9 + (Math.random() * 0.3))
+        price: Math.round(basePrice * (0.9 + (Math.random() * 0.3)) / 10) * 10 // round to nearest 10
       }));
       
       // Create search results
@@ -275,67 +435,152 @@ const BookDriver = () => {
     }
   };
 
+  const getStepIndicatorStyle = (stepNumber) => {
+    const baseStyle = {
+      flex: 1,
+      textAlign: 'center',
+      padding: '12px',
+      fontWeight: bookingStep >= stepNumber ? 'bold' : 'normal',
+      borderBottom: '3px solid',
+      borderBottomColor: bookingStep >= stepNumber ? '#e67e22' : '#ddd',
+      color: bookingStep >= stepNumber ? '#e67e22' : '#888',
+      position: 'relative'
+    };
+    
+    return baseStyle;
+  };
+
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Book a Driver</h1>
+    <div style={containerStyles}>
+      <h1 style={headingStyles}>Safari Ride Kenya</h1>
       
       {/* Step indicators */}
-      <div className="flex mb-8">
-        <div className={`flex-1 border-b-2 pb-2 ${bookingStep >= 1 ? 'border-blue-500 text-blue-500' : 'border-gray-300 text-gray-500'}`}>
+      <div style={stepIndicatorContainerStyles}>
+        <div style={getStepIndicatorStyle(1)}>
           1. Enter Locations
         </div>
-        <div className={`flex-1 border-b-2 pb-2 ${bookingStep >= 2 ? 'border-blue-500 text-blue-500' : 'border-gray-300 text-gray-500'}`}>
+        <div style={getStepIndicatorStyle(2)}>
           2. Select Driver
         </div>
-        <div className={`flex-1 border-b-2 pb-2 ${bookingStep >= 3 ? 'border-blue-500 text-blue-500' : 'border-gray-300 text-gray-500'}`}>
+        <div style={getStepIndicatorStyle(3)}>
           3. Confirm Booking
         </div>
       </div>
       
       {/* Step 1: Enter locations */}
       {bookingStep === 1 && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div style={cardStyles}>
           <form onSubmit={handleSearch}>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2" htmlFor="pickup_location">
+            <div style={formGroupStyles}>
+              <label style={labelStyles} htmlFor="pickup_location">
                 Pickup Location
               </label>
-              <input
-                type="text"
-                id="pickup_location"
-                name="pickup_location"
-                value={formData.pickup_location}
-                onChange={handleChange}
-                className="w-full border rounded-md py-2 px-3"
-                required
-                placeholder="Enter pickup address"
-              />
-              <p className="text-xs text-gray-500 mt-1">Try: CBD, Westlands, Kilimani, Karen, etc.</p>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  id="pickup_location"
+                  name="pickup_location"
+                  value={formData.pickup_location}
+                  onChange={handleChange}
+                  onFocus={() => setShowPickupSuggestions(true)}
+                  style={{ ...inputStyles, borderColor: showPickupSuggestions ? '#e67e22' : '#ddd' }}
+                  required
+                  placeholder="Enter pickup address"
+                />
+                {showPickupSuggestions && pickupSuggestions.length > 0 && (
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: '100%', 
+                    left: 0, 
+                    width: '100%', 
+                    backgroundColor: 'white', 
+                    border: '1px solid #ddd', 
+                    borderRadius: '0 0 6px 6px',
+                    zIndex: 10,
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                  }}>
+                    {pickupSuggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          padding: '10px 15px',
+                          cursor: 'pointer',
+                          borderBottom: index < pickupSuggestions.length - 1 ? '1px solid #eee' : 'none',
+                          transition: 'background-color 0.2s ease'
+                        }}
+                        onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                        onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                        onClick={() => handleSuggestionClick(suggestion, 'pickup')}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <p style={hintTextStyles}>Popular: CBD, Westlands, Kilimani, Karen, etc.</p>
             </div>
             
-            <div className="mb-6">
-              <label className="block text-gray-700 mb-2" htmlFor="dropoff_location">
+            <div style={formGroupStyles}>
+              <label style={labelStyles} htmlFor="dropoff_location">
                 Dropoff Location
               </label>
-              <input
-                type="text"
-                id="dropoff_location"
-                name="dropoff_location"
-                value={formData.dropoff_location}
-                onChange={handleChange}
-                className="w-full border rounded-md py-2 px-3"
-                required
-                placeholder="Enter destination address"
-              />
-              <p className="text-xs text-gray-500 mt-1">Try: JKIA, Lavington, Ngong, Thika, etc.</p>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  id="dropoff_location"
+                  name="dropoff_location"
+                  value={formData.dropoff_location}
+                  onChange={handleChange}
+                  onFocus={() => setShowDropoffSuggestions(true)}
+                  style={{ ...inputStyles, borderColor: showDropoffSuggestions ? '#e67e22' : '#ddd' }}
+                  required
+                  placeholder="Enter destination address"
+                />
+                {showDropoffSuggestions && dropoffSuggestions.length > 0 && (
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: '100%', 
+                    left: 0, 
+                    width: '100%', 
+                    backgroundColor: 'white', 
+                    border: '1px solid #ddd', 
+                    borderRadius: '0 0 6px 6px',
+                    zIndex: 10,
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                  }}>
+                    {dropoffSuggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          padding: '10px 15px',
+                          cursor: 'pointer',
+                          borderBottom: index < dropoffSuggestions.length - 1 ? '1px solid #eee' : 'none',
+                          transition: 'background-color 0.2s ease'
+                        }}
+                        onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                        onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                        onClick={() => handleSuggestionClick(suggestion, 'dropoff')}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <p style={hintTextStyles}>Popular: JKIA, Lavington, Ngong, Kiambu, etc.</p>
             </div>
             
             <button
               type="submit"
-              className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors w-full"
+              style={{
+                ...buttonPrimaryStyles,
+                backgroundColor: loading ? '#ccc' : '#e67e22',
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
               disabled={loading}
             >
-              {loading ? 'Searching...' : 'Search for Drivers'}
+              {loading ? 'Searching...' : 'Find Drivers'}
             </button>
           </form>
         </div>
@@ -343,11 +588,11 @@ const BookDriver = () => {
       
       {/* Step 2: Select driver with map */}
       {bookingStep === 2 && searchResults && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div style={cardStyles}>
           {/* Map display */}
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">Trip Route</h2>
-            <div className="map-container border rounded-lg overflow-hidden" style={{ height: '300px' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px', color: '#444' }}>Trip Route</h2>
+            <div style={mapContainerStyles}>
               {locations.pickup && locations.dropoff && (
                 <MapContainer 
                   center={mapCenter} 
@@ -373,63 +618,117 @@ const BookDriver = () => {
                       [locations.pickup.lat, locations.pickup.lon],
                       [locations.dropoff.lat, locations.dropoff.lon]
                     ]}
-                    color="blue"
+                    color="#e67e22"
                   />
                 </MapContainer>
               )}
             </div>
           </div>
           
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">Trip Details</h2>
-            <p><span className="font-medium">Distance:</span> {searchResults.distance} km</p>
-            <p><span className="font-medium">Estimated Price:</span> KES {searchResults.price.toFixed(0)}</p>
+          <div style={{ 
+            backgroundColor: '#f8f4e5', 
+            padding: '15px', 
+            borderRadius: '8px', 
+            marginBottom: '20px',
+            borderLeft: '4px solid #e67e22',
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>Trip Details</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div>
+                <p><span style={{ fontWeight: 'bold' }}>From:</span> {formData.pickup_location}</p>
+                <p><span style={{ fontWeight: 'bold' }}>To:</span> {formData.dropoff_location}</p>
+                <p><span style={{ fontWeight: 'bold' }}>Distance:</span> {searchResults.distance} km</p>
+              </div>
+              <div>
+                <p style={{ 
+                  fontSize: '28px', 
+                  fontWeight: 'bold', 
+                  color: '#e67e22',
+                  backgroundColor: '#fff',
+                  padding: '10px 15px',
+                  borderRadius: '6px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}>KES {searchResults.price.toFixed(0)}</p>
+              </div>
+            </div>
           </div>
           
-          <h2 className="text-xl font-semibold mb-4">Available Drivers</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px', color: '#444' }}>Available Drivers</h2>
           
           {searchResults.drivers && searchResults.drivers.length > 0 ? (
-            <div className="space-y-4">
+            <div>
               {searchResults.drivers.map((driver) => (
                 <div 
                   key={driver.driver_id} 
-                  className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                  style={{
+                    ...driverCardStyles,
+                    backgroundColor: selectedDriver?.driver_id === driver.driver_id ? '#fdf2e9' : '#fff',
+                    borderColor: selectedDriver?.driver_id === driver.driver_id ? '#e67e22' : '#ddd',
+                  }}
                   onClick={() => handleSelectDriver(driver)}
                 >
-                  <div className="flex justify-between">
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ 
+                      width: '60px', 
+                      height: '60px',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      marginRight: '15px',
+                      border: '2px solid #e67e22'
+                    }}>
+                      <img src={driver.image} alt={driver.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
                     <div>
-                      <p className="font-medium">{driver.name}</p>
-                      <p className="text-sm text-gray-600">Vehicle: {driver.vehicle_type}</p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-yellow-500 mr-1">★</span>
-                        <span>{driver.ratings.toFixed(1)}</span>
-                        <span className="text-gray-500 text-sm ml-2">
+                      <p style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '4px' }}>{driver.name}</p>
+                      <p style={{ color: '#666', fontSize: '14px', marginBottom: '4px' }}>Vehicle: {driver.vehicle_type}</p>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#f39c12', marginRight: '5px' }}>★</span>
+                        <span style={{ fontWeight: 'bold' }}>{driver.ratings.toFixed(1)}</span>
+                        <span style={{ color: '#777', fontSize: '13px', marginLeft: '5px' }}>
                           ({driver.completed_orders} trips)
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold">KES {driver.price.toFixed(0)}</p>
-                      <button
-                        className="mt-2 bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition-colors text-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelectDriver(driver);
-                        }}
-                      >
-                        Select
-                      </button>
-                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '10px', color: '#e67e22' }}>
+                      KES {driver.price.toFixed(0)}
+                    </p>
+                    <button
+                      style={{
+                        ...buttonSecondaryStyles,
+                        backgroundColor: '#e67e22',
+                        color: 'white',
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectDriver(driver);
+                      }}
+                    >
+                      Select
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-600">No drivers available at the moment. Please try again later.</p>
+            <p style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', padding: '20px' }}>
+              No drivers available at the moment. Please try again later.
+            </p>
           )}
           
           <button
-            className="mt-6 text-blue-600 hover:text-blue-800"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#e67e22',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              padding: '10px 0',
+              marginTop: '15px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
             onClick={() => setBookingStep(1)}
           >
             ← Back to locations
@@ -439,16 +738,18 @@ const BookDriver = () => {
       
       {/* Step 3: Confirm booking with map */}
       {bookingStep === 3 && selectedDriver && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Confirm Booking</h2>
+        <div style={cardStyles}>
+          <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '20px', color: '#444', textAlign: 'center' }}>
+            Confirm Your Booking
+          </h2>
           
           {/* Map in confirmation */}
-          <div className="mb-6">
-            <div className="map-container border rounded-lg overflow-hidden" style={{ height: '200px' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ ...mapContainerStyles, height: '200px' }}>
               {locations.pickup && locations.dropoff && (
                 <MapContainer 
                   center={mapCenter} 
-                  zoom={mapZoom} 
+                  zoom={mapZoom}
                   style={{ height: '100%', width: '100%' }}
                 >
                   <TileLayer
@@ -470,61 +771,154 @@ const BookDriver = () => {
                       [locations.pickup.lat, locations.pickup.lon],
                       [locations.dropoff.lat, locations.dropoff.lon]
                     ]}
-                    color="blue"
+                    color="#e67e22"
                   />
                 </MapContainer>
               )}
             </div>
           </div>
           
-          <div className="mb-6 space-y-2">
-            <p><span className="font-medium">From:</span> {formData.pickup_location}</p>
-            <p><span className="font-medium">To:</span> {formData.dropoff_location}</p>
-            <p><span className="font-medium">Distance:</span> {searchResults.distance} km</p>
+          <div style={{ 
+            display: 'flex',
+            justifyContent: 'space-between',
+            backgroundColor: '#f8f4e5', 
+            padding: '20px', 
+            borderRadius: '8px', 
+            marginBottom: '20px',
+            borderLeft: '4px solid #e67e22',
+          }}>
+            <div style={{ flex: '1' }}>
+              <div style={{ marginBottom: '15px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '10px', color: '#555' }}>Trip Details</h3>
+                <p style={{ marginBottom: '5px' }}><span style={{ fontWeight: 'bold' }}>From:</span> {formData.pickup_location}</p>
+                <p style={{ marginBottom: '5px' }}><span style={{ fontWeight: 'bold' }}>To:</span> {formData.dropoff_location}</p>
+                <p><span style={{ fontWeight: 'bold' }}>Distance:</span> {searchResults.distance} km</p>
+              </div>
+              
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '10px', color: '#555' }}>Driver Info</h3>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ 
+                    width: '50px', 
+                    height: '50px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    marginRight: '10px',
+                    border: '2px solid #e67e22'
+                  }}>
+                    <img src={selectedDriver.image} alt={selectedDriver.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: 'bold', marginBottom: '2px' }}>{selectedDriver.name}</p>
+                    <p style={{ fontSize: '13px', color: '#666' }}>{selectedDriver.vehicle_type} · {selectedDriver.ratings.toFixed(1)} ★</p>
+                  </div>
+                </div>
+              </div>
+            </div>
             
-            {searchResults.appliedPromoCode && (
-              <div className="bg-green-50 border border-green-200 rounded p-2 mt-2">
-                <p className="text-green-700">
-                  <span className="font-medium">Promo applied:</span> {searchResults.appliedPromoCode} ({searchResults.discount}% off)
+            <div style={{ 
+              flex: '0 0 auto',
+              marginLeft: '20px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <div style={{ 
+                backgroundColor: '#fff',
+                padding: '15px 20px',
+                borderRadius: '6px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                marginBottom: '10px',
+                minWidth: '150px'
+              }}>
+                <p style={{ fontSize: '14px', color: '#777', marginBottom: '5px' }}>Total Price</p>
+                <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#e67e22' }}>
+                  KES {searchResults.price.toFixed(0)}
                 </p>
               </div>
-            )}
-            
-            <p><span className="font-medium">Price:</span> KES {searchResults.price.toFixed(0)}</p>
-            <p><span className="font-medium">Driver:</span> {selectedDriver.name}</p>
-            <p><span className="font-medium">Vehicle:</span> {selectedDriver.vehicle_type}</p>
+              
+              {searchResults.appliedPromoCode && (
+                <div style={{ 
+                  backgroundColor: '#e8f5e9', 
+                  border: '1px solid #c8e6c9', 
+                  borderRadius: '4px', 
+                  padding: '8px 12px', 
+                  marginTop: '5px',
+                  fontSize: '13px',
+                  color: '#2e7d32'
+                }}>
+                  <span style={{ fontWeight: 'bold' }}>{searchResults.appliedPromoCode}</span>: {searchResults.discount}% off applied
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Promo code section */}
-          <div className="mb-6">
-            <label className="block text-gray-700 mb-2" htmlFor="promo_code">
-              Promo Code (Optional)
+          <div style={{ 
+            marginBottom: '25px',
+            backgroundColor: '#fff',
+            padding: '15px',
+            borderRadius: '8px',
+            border: '1px dashed #ddd'
+          }}>
+            <label style={{ ...labelStyles, marginBottom: '10px' }} htmlFor="promo_code">
+              Have a Promo Code?
             </label>
-            <div className="flex">
+            <div style={{ display: 'flex' }}>
               <input
                 type="text"
                 id="promo_code"
                 name="promo_code"
                 value={formData.promo_code}
                 onChange={handleChange}
-                className="flex-1 border rounded-l-md py-2 px-3"
+                style={{ 
+                  ...inputStyles, 
+                  borderTopRightRadius: 0,
+                  borderBottomRightRadius: 0,
+                  borderRight: 0
+                }}
                 placeholder="Enter promo code"
               />
               <button
                 type="button"
                 onClick={handleApplyPromo}
-                className="bg-gray-200 text-gray-800 py-2 px-4 rounded-r-md hover:bg-gray-300 transition-colors"
+                style={{ 
+                  backgroundColor: '#e67e22', 
+                  color: 'white', 
+                  border: 'none', 
+                  padding: '0 20px', 
+                  borderTopRightRadius: '6px', 
+                  borderBottomRightRadius: '6px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1
+                }}
                 disabled={loading}
               >
                 Apply
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-1">Try: KARIBU10, SAFARI20, NAIROBI25</p>
+            <p style={hintTextStyles}>Try: KARIBU10, SAFARI20, NAIROBI25, MADARAKA50, UHURU30</p>
           </div>
           
-          <div className="flex justify-between">
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between',
+            borderTop: '1px solid #eee',
+            paddingTop: '20px'
+          }}>
             <button
-              className="text-blue-600 hover:text-blue-800"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#e67e22',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                padding: '10px 0',
+                display: 'flex',
+                alignItems: 'center'
+              }}
               onClick={() => setBookingStep(2)}
               disabled={loading}
             >
@@ -532,15 +926,64 @@ const BookDriver = () => {
             </button>
             
             <button
-              className="bg-green-600 text-white py-2 px-6 rounded-md hover:bg-green-700 transition-colors"
+              style={{ 
+                backgroundColor: '#4CAF50', 
+                color: 'white', 
+                border: 'none', 
+                padding: '12px 25px', 
+                borderRadius: '6px', 
+                fontWeight: 'bold',
+                fontSize: '16px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.7 : 1,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
               onClick={handleBookDriver}
               disabled={loading}
             >
-              {loading ? 'Processing...' : 'Confirm Booking'}
+              {loading ? (
+                <span>Processing...</span>
+              ) : (
+                <span>Confirm & Book Now</span>
+              )}
             </button>
+          </div>
+          
+          {/* Additional information */}
+          <div style={{ 
+            marginTop: '25px', 
+            padding: '15px', 
+            backgroundColor: '#f9f9f9', 
+            borderRadius: '6px',
+            fontSize: '14px',
+            color: '#666'
+          }}>
+            <p style={{ marginBottom: '5px', fontWeight: 'bold' }}>Booking Information:</p>
+            <ul style={{ paddingLeft: '20px', marginTop: '5px' }}>
+              <li style={{ marginBottom: '3px' }}>Payment will be processed after your trip is completed.</li>
+              <li style={{ marginBottom: '3px' }}>Cancel up to 5 minutes before pickup with no fee.</li>
+              <li style={{ marginBottom: '3px' }}>Contact your driver directly after booking is confirmed.</li>
+              <li>Track your driver in real-time after booking.</li>
+            </ul>
           </div>
         </div>
       )}
+      
+      {/* Footer */}
+      <div style={{ 
+        textAlign: 'center', 
+        marginTop: '30px', 
+        borderTop: '1px solid #eee',
+        paddingTop: '20px',
+        color: '#888',
+        fontSize: '14px'
+      }}>
+        <p>© 2025 Safari Ride Kenya. All Rights Reserved.</p>
+        <p style={{ marginTop: '5px' }}>Safe, Reliable Transport Across Kenya</p>
+      </div>
     </div>
   );
 };
