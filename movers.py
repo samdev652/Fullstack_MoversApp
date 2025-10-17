@@ -19,14 +19,20 @@ db = SQLAlchemy(app)
 INTASEND_PUBLIC_KEY = os.getenv('INTASEND_PUBLIC_KEY')
 INTASEND_SECRET_KEY = os.getenv('INTASEND_SECRET_KEY')
 INTASEND_API_BASE = 'https://sandbox.intasend.com/api/v1'
+
+PAYHERO_AUTH_TOKEN = os.getenv('PAYHERO_AUTH_TOKEN')
 # Models
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     transaction_id = db.Column(db.String(100), unique=True, nullable=False)
     intasend_id = db.Column(db.String(100), nullable=True)
+    payhero_checkout_id = db.Column(db.String(100), nullable=True)  # ADDED for Payhero
     amount = db.Column(db.Float, nullable=False)
-    type = db.Column(db.String(50), nullable=False)  # deposit, payment, withdrawal
+    type = db.Column(db.String(50), nullable=False)
+    channel_id = db.Column(db.Integer, nullable=False)
+    provider = db.Column(db.String, nullable=False)
+    external_reference = db.Column(db.String, nullable=True)
     status = db.Column(db.String(50), default='pending')  # pending, completed, failed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 class User(db.Model):
@@ -139,6 +145,46 @@ def create_admin_user():
         db.session.add(admin)
         db.session.commit()
         print("Admin user created successfully.")
+
+def initiate_payhero_stk_push(transaction_id, amount, phone_number, channel_id, provider):
+    """Initiate Payhero STK Push"""
+    print(transaction_id, amount, phone_number, channel_id)
+    print(f'Provider: {provider}')
+    try:
+        access_token = PAYHERO_AUTH_TOKEN
+        if not access_token:
+            return None, "Failed to authenticate with Payhero"
+        
+        headers = {
+            'Authorization': f'{access_token}',
+            'Content-Type': 'application/json'
+        }
+        
+        payload = {
+            'amount': int(amount),
+            'phone_number': phone_number,  # Format: 2547XXXXXXXX or +2547XXXXXXXX
+            'callback_url': f'http://your-domain.com/api/payhero/callback/{transaction_id}',
+            'provider': provider,
+            'channel_id': channel_id
+        }
+        
+        response = requests.post(
+            f'https://backend.payhero.co.ke/api/v2/payments',
+            headers=headers,
+            json=payload
+        )
+        
+        if response.status_code == 201:
+            response_data = response.json()
+            response = response_data
+            return response, None
+        else:
+            error_msg = response.json()
+            return None, error_msg
+            
+    except Exception as e:
+        print(f"Error initiating Payhero STK Push: {e}")
+        return None, str(e)
 # Routes
 @app.route('/')
 def landing_page():
@@ -312,11 +358,17 @@ def ban_user(user_id):
     return jsonify({'message': f'User {user.name} has been banned.'})
 
 # Wallet Management
-@app.route('/api/user/deposit', methods=['POST'])
+@app.route('/api/deposit', methods=['POST'])
 def create_deposit():
     data = request.get_json()
     user_id = data.get('user_id')
     amount = data.get('amount')
+    payment_method = data.get('payment_method', 'intasend')  # 'intasend' or 'payhero'
+    phone_number = data.get('phone_number')  # Required for Payhero STK Push
+    # external_reference = data.get('external_reference')
+    channel_id = data.get('channel_id')
+    provider = data.get('provider')
+
     
     if not user_id or not amount:
         return jsonify({'error': 'User ID and amount are required'}), 400
@@ -333,16 +385,44 @@ def create_deposit():
         transaction_id=transaction_id,
         amount=amount,
         type='deposit',
-        status='pending'
+        status='pending',
+        # external_reference = external_reference,
+        channel_id = channel_id,
+        provider = provider
     )
     
     db.session.add(transaction)
     db.session.commit()
     
-    return jsonify({
-        'message': 'Deposit initiated',
-        'transaction_id': transaction_id
-    })
+    if payment_method == 'payhero':
+        # Payhero STK Push
+        if not phone_number:
+            return jsonify({'error': 'Phone number is required for Payhero STK Push'}), 400
+        
+        reference, error = initiate_payhero_stk_push(transaction_id, amount, phone_number, channel_id, provider)
+        
+        if reference:
+            transaction.payhero_checkout_id = reference
+            db.session.commit()
+            return jsonify({
+                'message': 'Payhero STK Push initiated. Please check your phone to complete the M-Pesa payment.',
+                'transaction_id': transaction_id,
+                'payhero_reference': reference,
+                'payment_method': 'payhero'
+            })
+        else:
+            transaction.status = 'failed'
+            db.session.commit()
+            return jsonify({'error': f'Payhero STK Push failed: {error}'}), 500
+    
+    # Original IntaSend logic (unchanged)
+    else:
+        return jsonify({
+            'message': 'Deposit initiated',
+            'transaction_id': transaction_id,
+            'payment_method': 'intasend'
+        })
+
 @app.route('/api/user/update-transaction', methods=['POST'])
 def update_transaction():
     data = request.get_json()
