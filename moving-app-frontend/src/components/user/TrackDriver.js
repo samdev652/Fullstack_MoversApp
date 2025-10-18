@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, Link } from "react-router-dom";
 
 const TrackDriver = () => {
   const { bookingId } = useParams();
@@ -7,7 +7,7 @@ const TrackDriver = () => {
   const [bookingDetails, setBookingDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Reference for simulation interval
   const simulationIntervalRef = useRef(null);
 
@@ -16,7 +16,7 @@ const TrackDriver = () => {
     location: "-1.2864,36.8172", // Nairobi CBD coordinates
     heading: 45,
     speed: 35,
-    last_updated: new Date().toISOString()
+    last_updated: new Date().toISOString(),
   };
 
   // Dummy data for booking details with Kenyan context
@@ -29,7 +29,7 @@ const TrackDriver = () => {
     driver_phone: "0722 123 456",
     vehicle: "Toyota Fielder",
     vehicle_color: "Silver",
-    license_plate: "KCF 234P"
+    license_plate: "KCF 234P",
   };
 
   useEffect(() => {
@@ -47,26 +47,28 @@ const TrackDriver = () => {
     // Simulate real-time updates by slightly changing the location every few seconds
     let movingNorth = true;
     let movingEast = true;
-    
+
     simulationIntervalRef.current = setInterval(() => {
-      setTrackingData(prevData => {
+      setTrackingData((prevData) => {
         if (!prevData) return dummyTrackingData;
-        
-        const [lat, lng] = prevData.location.split(',').map(Number);
-        
+
+        const [lat, lng] = prevData.location.split(",").map(Number);
+
         // Randomly change direction occasionally
         if (Math.random() < 0.2) movingNorth = !movingNorth;
         if (Math.random() < 0.2) movingEast = !movingEast;
-        
+
         // Update location by a small random amount
-        const latDelta = (Math.random() * 0.001) * (movingNorth ? 1 : -1);
-        const lngDelta = (Math.random() * 0.001) * (movingEast ? 1 : -1);
-        
+        const latDelta = Math.random() * 0.001 * (movingNorth ? 1 : -1);
+        const lngDelta = Math.random() * 0.001 * (movingEast ? 1 : -1);
+
         return {
           ...prevData,
-          location: `${(lat + latDelta).toFixed(6)},${(lng + lngDelta).toFixed(6)}`,
+          location: `${(lat + latDelta).toFixed(6)},${(lng + lngDelta).toFixed(
+            6
+          )}`,
           speed: Math.floor(25 + Math.random() * 20), // Random speed between 25-45 kph
-          last_updated: new Date().toISOString()
+          last_updated: new Date().toISOString(),
         };
       });
     }, 5000); // Update every 5 seconds
@@ -80,164 +82,466 @@ const TrackDriver = () => {
   }, [bookingId]);
 
   const formatDateTime = (isoString) => {
-    if (!isoString) return '';
+    if (!isoString) return "";
     const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="mb-4">
-        <Link to="/user/orders" className="text-blue-600 hover:text-blue-800">
+    <div className="dashboard-container">
+      <div className="mb-3">
+        <Link
+          to="/user/orders"
+          style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}
+        >
           ← Back to Orders
         </Link>
       </div>
-      
-      <h1 className="text-2xl font-bold mb-6">Track Driver</h1>
-      
+
+      <h1 className="dashboard-title">Track Driver - Real-Time Monitoring</h1>
+
       {loading ? (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p>Loading tracking information...</p>
+        <div className="card text-center">
+          <div className="loading">Loading tracking information...</div>
         </div>
       ) : error ? (
-        <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
-          {error}
-        </div>
+        <div className="error">{error}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Booking Information */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Booking Details</h2>
-              
-              <div className="space-y-3">
-                <p>
-                  <span className="font-medium">Booking ID:</span> #{bookingDetails.booking_id}
-                </p>
-                <p>
-                  <span className="font-medium">Status:</span> {bookingDetails.status}
-                </p>
-                <p>
-                  <span className="font-medium">From:</span> {bookingDetails.pickup_location}
-                </p>
-                <p>
-                  <span className="font-medium">To:</span> {bookingDetails.dropoff_location}
-                </p>
-                
-                <div className="border-t pt-3 mt-3">
-                  <h3 className="font-medium mb-2">Driver Information</h3>
-                  <p>
-                    <span className="font-medium">Name:</span> {bookingDetails.driver_name}
-                  </p>
-                  <p>
-                    <span className="font-medium">Phone:</span> {bookingDetails.driver_phone}
-                  </p>
-                  <p>
-                    <span className="font-medium">Vehicle:</span> {bookingDetails.vehicle_color} {bookingDetails.vehicle}
-                  </p>
-                  <p>
-                    <span className="font-medium">License:</span> {bookingDetails.license_plate}
-                  </p>
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: "1fr", gap: "25px" }}
+        >
+          {/* Main Tracking Dashboard - Top Section */}
+          <div className="card">
+            <h2>📍 Live Driver Location</h2>
+            {trackingData && trackingData.location ? (
+              <div>
+                <div
+                  style={{
+                    height: "400px",
+                    background:
+                      "linear-gradient(135deg, rgba(255, 102, 0, 0.1), rgba(255, 204, 0, 0.1))",
+                    border: "2px solid rgba(255, 102, 0, 0.3)",
+                    borderRadius: "15px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "20px",
+                  }}
+                >
+                  <div style={{ textAlign: "center" }}>
+                    <h3 style={{ color: "#ff6600", marginBottom: "15px" }}>
+                      🗺️ Map Integration Ready
+                    </h3>
+                    <p style={{ fontSize: "18px", marginBottom: "10px" }}>
+                      <strong>Current Position:</strong> {trackingData.location}
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "30px",
+                        justifyContent: "center",
+                        marginTop: "20px",
+                      }}
+                    >
+                      <div className="stat-card" style={{ minWidth: "150px" }}>
+                        <h3 style={{ fontSize: "28px" }}>
+                          {trackingData.heading}°
+                        </h3>
+                        <p style={{ fontSize: "14px" }}>Direction</p>
+                      </div>
+                      <div className="stat-card" style={{ minWidth: "150px" }}>
+                        <h3 style={{ fontSize: "28px" }}>
+                          {trackingData.speed}
+                        </h3>
+                        <p style={{ fontSize: "14px" }}>km/h</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                
-                <button className="mt-4 bg-blue-600 text-white w-full py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                  Call Driver
-                </button>
-                
-                <button className="mt-2 bg-gray-200 text-gray-800 w-full py-2 px-4 rounded-md hover:bg-gray-300 transition-colors">
-                  Message Driver
-                </button>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "15px",
+                    background: "rgba(255, 255, 255, 0.05)",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <p>
+                    <strong>Last Updated:</strong>{" "}
+                    {formatDateTime(trackingData.last_updated)}
+                  </p>
+                  <span
+                    className="status status-confirmed"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    🚗 Driver En Route
+                  </span>
+                </div>
               </div>
-            </div>
-            
-            {/* Fare estimate */}
-            <div className="bg-white rounded-lg shadow p-6 mt-4">
-              <h2 className="text-xl font-semibold mb-4">Fare Estimate</h2>
-              <div className="flex justify-between mb-2">
-                <span>Base fare</span>
-                <span>KSh 200</span>
-              </div>
-              <div className="flex justify-between mb-2">
-                <span>Distance (5.3 km)</span>
-                <span>KSh 350</span>
-              </div>
-              <div className="flex justify-between mb-2">
-                <span>Time</span>
-                <span>KSh 100</span>
-              </div>
-              <div className="border-t pt-2 mt-2 font-medium flex justify-between">
-                <span>Total</span>
-                <span>KSh 650</span>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">Paid via M-PESA</p>
-            </div>
+            ) : (
+              <p>Location data unavailable.</p>
+            )}
           </div>
-          
-          {/* Tracking Map & Updates */}
-          <div className="md:col-span-2">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Driver Location</h2>
-              {trackingData && trackingData.location ? (
-                <div>
-                  <div className="h-64 w-full bg-gray-200 flex items-center justify-center rounded-lg mb-4">
-                    {/* Replace with an actual map component like Google Maps or Leaflet */}
-                    <div className="text-center">
-                      <p className="font-medium">Map Placeholder</p>
-                      <p>Driver at coordinates: {trackingData.location}</p>
-                      <p className="mt-2 text-sm text-gray-600">
-                        Heading: {trackingData.heading}° | Speed: {trackingData.speed} km/h
+
+          {/* Two Column Layout */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))",
+              gap: "25px",
+            }}
+          >
+            {/* Left Column - Booking & Driver Info */}
+            <div>
+              {/* Booking Details Card */}
+              <div className="card">
+                <h2>📋 Booking Information</h2>
+                <table style={{ marginTop: "15px" }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ width: "40%", fontWeight: "600" }}>
+                        Booking ID
+                      </td>
+                      <td>#{bookingDetails.booking_id}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "600" }}>Status</td>
+                      <td>
+                        <span className="status status-in-progress">
+                          {bookingDetails.status
+                            .replace("_", " ")
+                            .toUpperCase()}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "600" }}>Pickup Location</td>
+                      <td>{bookingDetails.pickup_location}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "600" }}>Dropoff Location</td>
+                      <td>{bookingDetails.dropoff_location}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Driver Information Card */}
+              <div className="card" style={{ marginTop: "25px" }}>
+                <h2>👤 Driver Details</h2>
+                <table style={{ marginTop: "15px" }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ width: "40%", fontWeight: "600" }}>Name</td>
+                      <td>{bookingDetails.driver_name}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "600" }}>Phone</td>
+                      <td>{bookingDetails.driver_phone}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "600" }}>Vehicle</td>
+                      <td>
+                        {bookingDetails.vehicle_color} {bookingDetails.vehicle}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "600" }}>License Plate</td>
+                      <td style={{ fontWeight: "bold", color: "#ffcc00" }}>
+                        {bookingDetails.license_plate}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "15px",
+                    marginTop: "20px",
+                  }}
+                >
+                  <button style={{ width: "100%" }}>📞 Call Driver</button>
+                  <button style={{ width: "100%" }}>💬 Message</button>
+                </div>
+              </div>
+
+              {/* Fare Breakdown Card */}
+              <div className="card" style={{ marginTop: "25px" }}>
+                <h2>💰 Fare Breakdown</h2>
+                <table style={{ marginTop: "15px" }}>
+                  <tbody>
+                    <tr>
+                      <td>Base Fare</td>
+                      <td style={{ textAlign: "right", fontWeight: "600" }}>
+                        KSh 200
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Distance (5.3 km)</td>
+                      <td style={{ textAlign: "right", fontWeight: "600" }}>
+                        KSh 350
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Time Charge</td>
+                      <td style={{ textAlign: "right", fontWeight: "600" }}>
+                        KSh 100
+                      </td>
+                    </tr>
+                    <tr
+                      style={{ borderTop: "2px solid rgba(255, 102, 0, 0.5)" }}
+                    >
+                      <td
+                        style={{
+                          fontWeight: "bold",
+                          fontSize: "18px",
+                          paddingTop: "10px",
+                        }}
+                      >
+                        Total Amount
+                      </td>
+                      <td
+                        style={{
+                          textAlign: "right",
+                          fontWeight: "bold",
+                          fontSize: "20px",
+                          color: "#ffcc00",
+                          paddingTop: "10px",
+                        }}
+                      >
+                        KSh 650
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div
+                  style={{
+                    marginTop: "15px",
+                    padding: "10px",
+                    background: "rgba(76, 175, 80, 0.1)",
+                    borderRadius: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  <span style={{ color: "#4caf50", fontWeight: "600" }}>
+                    ✓ Paid via M-PESA
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Timeline & Traffic */}
+            <div>
+              {/* Journey Timeline Card */}
+              <div className="card">
+                <h2>🕒 Journey Timeline</h2>
+                <div style={{ marginTop: "20px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      marginBottom: "25px",
+                      position: "relative",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        background: "linear-gradient(145deg, #4caf50, #2e7d32)",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "bold",
+                        fontSize: "18px",
+                        boxShadow: "0 4px 15px rgba(76, 175, 80, 0.4)",
+                        zIndex: 1,
+                      }}
+                    >
+                      ✓
+                    </div>
+                    <div style={{ marginLeft: "20px", flex: 1 }}>
+                      <p
+                        style={{
+                          fontWeight: "600",
+                          fontSize: "16px",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        Driver Accepted Booking
+                      </p>
+                      <p style={{ color: "#aaa", fontSize: "14px" }}>
+                        10:32 AM
                       </p>
                     </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <p>Last updated: {formatDateTime(trackingData.last_updated)}</p>
-                    <p className="text-green-600">Driver is on the way</p>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      marginBottom: "25px",
+                      position: "relative",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        background: "linear-gradient(145deg, #ff6600, #ff4500)",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "bold",
+                        fontSize: "18px",
+                        boxShadow: "0 4px 15px rgba(255, 102, 0, 0.5)",
+                        animation: "pulse 2s infinite",
+                        zIndex: 1,
+                      }}
+                    >
+                      🚗
+                    </div>
+                    <div style={{ marginLeft: "20px", flex: 1 }}>
+                      <p
+                        style={{
+                          fontWeight: "600",
+                          fontSize: "16px",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        Driver On The Way
+                      </p>
+                      <p
+                        style={{
+                          color: "#ffcc00",
+                          fontSize: "14px",
+                          fontWeight: "600",
+                        }}
+                      >
+                        Currently Active - 10:36 AM
+                      </p>
+                    </div>
                   </div>
-                  <div className="mt-6 space-y-4">
-                    <div className="flex">
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
-                        1
-                      </div>
-                      <div className="ml-4">
-                        <p className="font-medium">Driver accepted your booking</p>
-                        <p className="text-sm text-gray-600">10:32 AM</p>
-                      </div>
+
+                  <div style={{ display: "flex", opacity: 0.5 }}>
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        background: "rgba(255, 255, 255, 0.2)",
+                        border: "2px dashed rgba(255, 255, 255, 0.3)",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "bold",
+                        fontSize: "18px",
+                      }}
+                    >
+                      3
                     </div>
-                    <div className="flex">
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
-                        2
-                      </div>
-                      <div className="ml-4">
-                        <p className="font-medium">Driver is on the way</p>
-                        <p className="text-sm text-gray-600">10:36 AM</p>
-                      </div>
-                    </div>
-                    <div className="flex opacity-50">
-                      <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white">
-                        3
-                      </div>
-                      <div className="ml-4">
-                        <p className="font-medium">Arriving at Junction Mall</p>
-                        <p className="text-sm text-gray-600">Estimated: 10:45 AM</p>
-                      </div>
+                    <div style={{ marginLeft: "20px", flex: 1 }}>
+                      <p
+                        style={{
+                          fontWeight: "600",
+                          fontSize: "16px",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        Arriving at Pickup
+                      </p>
+                      <p style={{ color: "#aaa", fontSize: "14px" }}>
+                        Estimated: 10:45 AM
+                      </p>
                     </div>
                   </div>
                 </div>
-              ) : (
-                <p className="text-gray-500">Location data unavailable.</p>
-              )}
-            </div>
-            
-            {/* Traffic info */}
-            <div className="bg-white rounded-lg shadow p-6 mt-4">
-              <h2 className="text-xl font-semibold mb-4">Traffic Information</h2>
-              <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
-                <p className="text-amber-800 font-medium">Moderate traffic on Ngong Road</p>
-                <p className="text-sm text-amber-700 mt-1">Expect slight delays of 5-10 minutes due to construction near Adams Arcade</p>
               </div>
-              <div className="mt-3 text-sm text-gray-600">
-                <p>Estimated time of arrival: 10:45 AM</p>
-                <p className="mt-1">Distance to pickup: 2.3 km</p>
+
+              {/* Traffic Information Card */}
+              <div className="card" style={{ marginTop: "25px" }}>
+                <h2>🚦 Traffic & Route Information</h2>
+
+                <div
+                  style={{
+                    marginTop: "15px",
+                    padding: "15px",
+                    background: "rgba(255, 193, 7, 0.1)",
+                    border: "1px solid rgba(255, 193, 7, 0.3)",
+                    borderRadius: "10px",
+                    borderLeft: "4px solid #ffc107",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontWeight: "600",
+                      color: "#ff8c00",
+                      marginBottom: "8px",
+                      fontSize: "16px",
+                    }}
+                  >
+                    ⚠️ Moderate Traffic Alert
+                  </p>
+                  <p style={{ fontSize: "14px", lineHeight: "1.6" }}>
+                    Expect slight delays of <strong>5-10 minutes</strong> due to
+                    construction near Adams Arcade on Ngong Road
+                  </p>
+                </div>
+
+                <table style={{ marginTop: "20px" }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ fontWeight: "600" }}>
+                        🕐 Estimated Arrival
+                      </td>
+                      <td
+                        style={{
+                          textAlign: "right",
+                          color: "#ffcc00",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        10:45 AM
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "600" }}>
+                        📏 Distance to Pickup
+                      </td>
+                      <td
+                        style={{
+                          textAlign: "right",
+                          color: "#ffcc00",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        2.3 km
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ fontWeight: "600" }}>⏱️ Estimated Time</td>
+                      <td
+                        style={{
+                          textAlign: "right",
+                          color: "#4caf50",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        ~8 minutes
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

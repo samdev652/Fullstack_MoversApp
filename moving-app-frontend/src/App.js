@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -16,7 +11,6 @@ import Register from "./components/auth/Register";
 import Navbar from "./components/layout/Navbar";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 
-
 // User Components
 import UserDashboard from "./components/user/UserDashboard";
 import BookDriver from "./components/user/BookDriver";
@@ -25,7 +19,7 @@ import TrackDriver from "./components/user/TrackDriver";
 import UserNotifications from "./components/user/UserNotifications";
 import UserWallet from "./components/user/UserWallet";
 import UserSupportTickets from "./components/user/UserSupportTickets";
-
+import UserSettings from "./components/user/UserSettings";
 
 // Driver Components
 import DriverDashboard from "./components/driver/DriverDashboard";
@@ -118,6 +112,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["user"]}>
                   <UserSupportTickets />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute allowedRoles={["user", "driver", "admin"]}>
+                  <UserSettings />
                 </ProtectedRoute>
               }
             />
